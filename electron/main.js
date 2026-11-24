@@ -37,9 +37,21 @@ function readConfig() {
   }
 }
 
+// Через временный файл и переименование, как и файлы хранилища. Оборванная на
+// середине запись иначе оставляла битый config.json, readConfig отдавал {}, и
+// свой путь к хранилищу молча сбрасывался на «Документы\Кошель» — программа
+// открывала пустое хранилище, будто данные пропали.
 function writeConfig(cfg) {
-  fs.mkdirSync(path.dirname(configFile()), { recursive: true })
-  fs.writeFileSync(configFile(), JSON.stringify(cfg, null, 2), 'utf8')
+  const file = configFile()
+  fs.mkdirSync(path.dirname(file), { recursive: true })
+  const tmp = `${file}.${process.pid}.tmp`
+  try {
+    fs.writeFileSync(tmp, JSON.stringify(cfg, null, 2), 'utf8')
+    fs.renameSync(tmp, file)
+  } catch (e) {
+    try { fs.rmSync(tmp, { force: true }) } catch { /* уже нет */ }
+    throw e
+  }
 }
 
 // Язык меню и системных окон известен до окна: окно его только меняет.
@@ -375,10 +387,9 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   app.on('second-instance', (_e, argv) => {
     offerArchive(archiveFromArgv(argv))
-    if (win) {
-      if (win.isMinimized()) win.restore()
-      win.focus()
-    }
+    // Не только развернуть и сфокусировать: окно, спрятанное крестиком в трей,
+    // иначе так и оставалось невидимым, и ярлык будто бы не срабатывал.
+    if (win) показать()
   })
 
   app.whenReady().then(() => {
