@@ -1325,9 +1325,11 @@ async function transactionsBulk() {
 
   click(byText('.seg button', 'Расходы'))
   await wait(400)
-  const m = (document.querySelector('.view-sub')?.textContent || '').match(/^(\d+) записей/)
+  // Слово склоняется по числу: «221 запись», «222 записи», «225 записей».
+  const подпись = (document.querySelector('.view-sub')?.textContent || '').trim()
+  const m = подпись.match(/^(\d+) запис(?:ь|и|ей)(?=\s|$)/)
   const filtered = m ? Number(m[1]) : 0
-  check('фильтр сузил список', filtered > 0 && filtered < start, `${filtered} из ${start}`)
+  check('фильтр сузил список', filtered > 0 && filtered < start, `${filtered} из ${start}; «${подпись.slice(0, 40)}»`)
 
   const label = byText('label.row', 'Выделить все')
   check('есть «Выделить все»', !!label, (label?.textContent || '').trim())
