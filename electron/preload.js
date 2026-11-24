@@ -34,7 +34,7 @@ contextBridge.exposeInMainWorld('kashel', {
   readBinary: (rel) => call('fs:readBinary', rel),
 
   openText: (filters) => ipcRenderer.invoke('dialog:openText', filters),
-  saveText: (name, text, opts) => ipcRenderer.invoke('dialog:saveText', name, text, opts),
+  saveText: (name, text, opts) => call('dialog:saveText', name, text, opts),
   openImage: () => ipcRenderer.invoke('dialog:openImage'),
   openSound: () => ipcRenderer.invoke('dialog:openSound'),
   /** Системное уведомление: {title, body}. */

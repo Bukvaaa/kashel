@@ -167,8 +167,12 @@ export function КонструкторТемы({ исходная, onClose }: { 
 
   const выгрузить = async () => {
     const тм = тема()
-    const путь = await bridge.saveText(`${тм.name}.${РАСШИРЕНІЕ_ТЕМЫ}`, файлТемы(тм))
-    if (путь !== null) toast(т('Файл темы сохранён'))
+    try {
+      const путь = await bridge.saveText(`${тм.name}.${РАСШИРЕНІЕ_ТЕМЫ}`, файлТемы(тм))
+      if (путь !== null) toast(т('Файл темы сохранён'))
+    } catch (e) {
+      toast(т('Не удалось сохранить файл: ') + (e instanceof Error ? e.message : String(e)))
+    }
   }
 
   const загрузить = async (файлъ: File | undefined) => {

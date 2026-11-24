@@ -2689,6 +2689,7 @@ export const EN: Record<string, string> = {
   'Новая заметка {0}': 'New note {0}',
   'Переименовано': 'Renamed',
   'Переименовано в «{0}»': 'Renamed to “{0}”',
+  'Не удалось сохранить файл: ': 'Could not save the file: ',
   'Заметка «{0}» уже есть': 'A note named “{0}” already exists',
   'В имени заметки не может быть знаков \\ / : * ? " < > |: «{0}»': 'A note name can’t contain \\ / : * ? " < > |: “{0}”',
   'Создана заметка «{0}»': 'Created note “{0}”',

@@ -713,7 +713,14 @@ ipcMain.handle('dialog:saveText', async (_e, defaultName, text, opts) => {
   })
   if (res.canceled || !res.filePath) return null
   const bom = !opts || opts.bom !== false
-  await fsp.writeFile(res.filePath, (bom ? '﻿' : '') + text, 'utf8')
+  try {
+    await fsp.writeFile(res.filePath, (bom ? '﻿' : '') + text, 'utf8')
+  } catch (e) {
+    // Чаще всего файл открыт в Excel. Отказ едет меткой, как у файлов
+    // хранилища, — иначе до окна дошло бы английское «Error invoking remote
+    // method …» с кодом вместо понятной причины.
+    return failed(e, res.filePath)
+  }
   return res.filePath
 })
 

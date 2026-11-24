@@ -115,8 +115,12 @@ export default function Transactions({ filter }: { filter?: string }) {
         t.note ?? '',
       ]),
     ])
-    const p = await bridge.saveText(т('операции.csv'), out)
-    if (p) toast(т('Выгружено: ') + p)
+    try {
+      const p = await bridge.saveText(т('операции.csv'), out)
+      if (p) toast(т('Выгружено: ') + p)
+    } catch (e) {
+      toast(т('Не удалось сохранить файл: ') + (e instanceof Error ? e.message : String(e)))
+    }
   }
 
   // Выделение работает по текущему фильтру: «выделить все» — это все строки,
