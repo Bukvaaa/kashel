@@ -3,7 +3,7 @@ import { сЗначкомъ } from '../lib/catalog'
 import { useApp, VIEW_META, type ViewId } from '../App'
 import { useStore } from '../state/store'
 import { Icon } from '../lib/icons'
-import { listCanvases, listNotes, writeCanvas, writeNote } from '../state/vault'
+import { listCanvases, listNotes, writeCanvas, writeNote, свободноеИмя } from '../state/vault'
 import { useToast } from './ui'
 import { THEMES, counterpart } from '../lib/themes'
 import { т } from '../i18n'
@@ -58,7 +58,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
       {
         id: 'act:new-note', section: т('Действия'), title: т('Новая заметка'), icon: 'note',
         run: async () => {
-          const name = т('Заметка {0}', new Date().toLocaleDateString('ru-RU'))
+          const name = свободноеИмя(т('Заметка {0}', new Date().toLocaleDateString('ru-RU')), await listNotes())
           await writeNote(name, `# ${name}\n\n`)
           app.openTab('notes', name)
         },
@@ -66,7 +66,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
       {
         id: 'act:new-canvas', section: т('Действия'), title: т('Новый канвас'), icon: 'canvas',
         run: async () => {
-          const name = т('Канвас {0}', new Date().toLocaleDateString('ru-RU'))
+          const name = свободноеИмя(т('Канвас {0}', new Date().toLocaleDateString('ru-RU')), await listCanvases())
           await writeCanvas(name, { nodes: [], edges: [] })
           app.openTab('canvas', name)
         },
