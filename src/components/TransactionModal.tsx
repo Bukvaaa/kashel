@@ -7,7 +7,7 @@ import { PALETTE } from '../lib/emoji'
 import { Avatar, Modal, Field, GroupedInput, MoneyInput, TagInput, useToast, Confirm } from './ui'
 import { Icon } from '../lib/icons'
 import { addDays, humanDate, today } from '../lib/date'
-import { formatAmountInput, groupDigits, money, uid, суммаИзВыражения } from '../lib/format'
+import { formatAmountInput, groupDigits, money, uid, вычислить, суммаИзВыражения } from '../lib/format'
 import { readAttachmentBase64, saveAttachment, bridge } from '../state/vault'
 import { т, тр } from '../i18n'
 import { назначеніе, планъПлатежа } from '../engine/credit'
@@ -345,13 +345,11 @@ export function TransactionModal({
                   if (e.key === 'Enter') save()
                   // Маленький калькулятор: «450+120» считается по Tab или =
                   if ((e.key === '=' || e.key === 'Tab') && /[+\-*/]/.test(amountStr)) {
-                    try {
-                      const v = Function(`"use strict";return (${amountStr.replace(/,/g, '.').replace(/\s/g, '')})`)()
-                      if (Number.isFinite(v)) {
-                        e.preventDefault()
-                        setAmountStr(formatAmountInput(String(Math.round(v * 100) / 100).replace('.', ',')))
-                      }
-                    } catch { /* оставляем как есть */ }
+                    const v = вычислить(amountStr)
+                    if (v != null) {
+                      e.preventDefault()
+                      setAmountStr(formatAmountInput(String(Math.round(v * 100) / 100).replace('.', ',')))
+                    }
                   }
                 }}
                 style={{ fontSize: 26, fontWeight: 600, padding: '8px 12px' }}

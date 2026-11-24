@@ -22,13 +22,62 @@ export function toMinor(value: string | number): Money {
 export function суммаИзВыражения(value: string): Money {
   const s = value.replace(/[\s\u00A0]/g, '').replace(/,/g, '.')
   if (!/[+\-*/]/.test(s.replace(/^-/, ''))) return toMinor(value)
-  if (!/^[\d.+\-*/()]+$/.test(s)) return 0
-  try {
-    const v = Function(`"use strict";return (${s})`)() as unknown
-    return typeof v === 'number' && Number.isFinite(v) ? Math.round(v * 100) : 0
-  } catch {
-    return 0
+  const v = вычислить(s)
+  return v == null ? 0 : Math.round(v * 100)
+}
+
+/**
+ * Считает «450+120», «1200*3», «(500-120)/2». Только числа, четыре действия,
+ * скобки и унарный минус; что угодно другое — null.
+ *
+ * Свой разбор вместо Function(...): выполнять строку как код — это и лишняя
+ * опасность, и запрет на строгую Content-Security-Policy для всего окна
+ * (ей пришлось бы разрешить 'unsafe-eval').
+ */
+export function вычислить(выражение: string): number | null {
+  const s = выражение.replace(/[\s  ]/g, '').replace(/,/g, '.')
+  let i = 0
+  const число = (): number | null => {
+    const m = /^(?:\d+\.?\d*|\.\d+)/.exec(s.slice(i))
+    if (!m) return null
+    i += m[0].length
+    return Number(m[0])
   }
+  const множитель = (): number | null => {
+    if (s[i] === '-') { i++; const v = множитель(); return v == null ? null : -v }
+    if (s[i] === '+') { i++; return множитель() }
+    if (s[i] === '(') {
+      i++
+      const v = сумма()
+      if (v == null || s[i] !== ')') return null
+      i++
+      return v
+    }
+    return число()
+  }
+  const произведение = (): number | null => {
+    let v = множитель()
+    while (v != null && (s[i] === '*' || s[i] === '/')) {
+      const оп = s[i++]
+      const b = множитель()
+      if (b == null) return null
+      v = оп === '*' ? v * b : v / b
+    }
+    return v
+  }
+  const сумма = (): number | null => {
+    let v = произведение()
+    while (v != null && (s[i] === '+' || s[i] === '-')) {
+      const оп = s[i++]
+      const b = произведение()
+      if (b == null) return null
+      v = оп === '+' ? v + b : v - b
+    }
+    return v
+  }
+  if (!s) return null
+  const v = сумма()
+  return v != null && i === s.length && Number.isFinite(v) ? v : null
 }
 
 export const toMajor = (m: Money): number => m / 100
