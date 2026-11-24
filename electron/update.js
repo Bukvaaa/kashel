@@ -255,7 +255,16 @@ async function проверить({ адресъ, версія, платформ
 async function поставить({ находка, наХодъ, каталогъ, запускать = true } = {}) {
   const загрузки = path.join(os.homedir(), 'Downloads')
   const врем = каталогъ || (process.platform === 'darwin' && fs.existsSync(загрузки) ? загрузки : os.tmpdir())
-  const имя = decodeURIComponent(new URL(находка.url).pathname.split('/').pop() || 'kashel-update')
+  // Имя файла приходит из адреса: после раскодировки в нём могут оказаться
+  // «..» и разделители, уводящие запись из временной папки. Берём только
+  // последнюю часть пути и оставляем в ней безопасные знаки.
+  let имя
+  try {
+    имя = decodeURIComponent(new URL(находка.url).pathname.split('/').pop() || '')
+  } catch {
+    имя = ''
+  }
+  имя = path.basename(имя.replace(/\\/g, '/')).replace(/[^\w.\-() а-яА-ЯёЁ]/g, '_').replace(/^\.+/, '') || 'kashel-update'
   const куда = path.join(врем, имя)
 
   const итогъ = await скачатьВъФайлъ(находка.url, куда, находка.size, наХодъ)

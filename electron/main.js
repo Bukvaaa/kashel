@@ -292,6 +292,18 @@ function createWindow() {
     if (/^https?:/.test(url)) shell.openExternal(url)
     return { action: 'deny' }
   })
+
+  // Окно никогда не уходит со своей страницы. Без этого брошенный в окно файл
+  // или ссылка открывались вместо программы, и чужая страница получала мост
+  // preload — чтение, запись и удаление файлов хранилища. Ссылки, по которым
+  // щёлкают, сюда не попадают: они открываются во внешнем браузере через
+  // setWindowOpenHandler выше.
+  win.webContents.on('will-navigate', (e, url) => {
+    if (url !== win.webContents.getURL()) e.preventDefault()
+  })
+  win.webContents.on('will-redirect', (e, url) => {
+    if (url !== win.webContents.getURL()) e.preventDefault()
+  })
 }
 
 // Меню сведено к минимуму: вся навигация живёт в палитре команд Ctrl+P.
@@ -463,9 +475,15 @@ ipcMain.handle('update:check', () => поЯзыку(async () => {
  */
 ipcMain.handle('update:pending', () => ({ версія: app.getVersion(), находка }))
 
-ipcMain.handle('update:install', (_e, н) => поЯзыку(async () => {
+ipcMain.handle('update:install', (_e, просили) => поЯзыку(async () => {
   if (!app.isPackaged) throw new Error('в режиме разработки установка обновления не делается')
+  // Ставится только то, что нашла и проверила по подписи сама оболочка.
+  // Адрес и контрольная сумма из окна не берутся: окно — страница, и если
+  // в неё попадёт чужой код, он не должен мочь подсунуть свой установщик.
+  // От окна нужна лишь версия — убедиться, что человек согласился именно на неё.
+  const н = находка
   if (!н || !н.url) throw new Error('нечего ставить')
+  if (!просили || просили.version !== н.version) throw new Error('нечего ставить')
   const итогъ = await обновленіе.поставить({
     находка: н,
     наХодъ: (было, всего) => {
