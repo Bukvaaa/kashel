@@ -319,11 +319,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return () => window.clearInterval(id)
   }, [ready])
 
-  // Страховка на случай, если отложенная запись почему-то не сработала:
-  // раз в пять минут переписываем хранилище целиком.
+  // Страховка на случай, если отложенная запись почему-то не сработала.
+  // Раз в пять минут — только когда есть что писать: ждёт отложенная запись,
+  // остались отметки месяцев или справочников, или прошлая запись упала.
+  // Прежде хранилище переписывалось целиком каждые пять минут и без правок —
+  // лишняя работа диска и облачной синхронизации папки. Полная перезапись
+  // «на всякий случай» осталась, но раз в час.
+  const грязно = useRef(false)
+  useEffect(() => { грязно.current = dirty || !!saveError }, [dirty, saveError])
   useEffect(() => {
     if (!ready) return
-    const id = window.setInterval(() => void saveNow().catch(() => {}), 5 * 60 * 1000)
+    let последняяПолная = Date.now()
+    const id = window.setInterval(() => {
+      const естьЧтоПисать = грязно.current || !!saveTimer.current || touchedRef.current.size > 0 || coreDirty.current
+      if (!естьЧтоПисать && Date.now() - последняяПолная < 60 * 60 * 1000) return
+      последняяПолная = Date.now()
+      void saveNow().catch(() => {})
+    }, 5 * 60 * 1000)
     return () => window.clearInterval(id)
   }, [ready, saveNow])
 
