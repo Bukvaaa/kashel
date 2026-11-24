@@ -1180,6 +1180,20 @@ check('доля выполненнаго не выходитъ за единиц
   monthQuests(data, мк).every((q) => q.progress >= 0 && q.progress <= 1))
 check('на пустомъ хранилищѣ заданія не закрыты',
   monthQuests({ ...data, transactions: [], tasks: [] }, мк).every((q) => !q.done))
+{
+  // «Не выйти за смѣту» выпадаетъ въ ноябрѣ 2026. Пустой мѣсяцъ его не закрываетъ,
+  // а мѣсяцъ съ тратой въ предѣлахъ лимита — закрываетъ.
+  const счётъ = data.accounts.find((a) => !a.archived)!.id
+  const статья = { id: 'q-lim', name: 'Лимитъ', kind: 'expense' as const, plan: 1_000_00 }
+  const смѣта = (traty: typeof data.transactions) => monthQuests(
+    { ...data, categories: [статья], transactions: traty, tasks: [] }, '2026-11',
+  ).find((q) => q.id === 'in_limits')
+  check('«не выйти за смѣту» есть въ ноябрѣ 2026', !!смѣта([]))
+  check('«не выйти за смѣту» не закрыто безъ тратъ', смѣта([])?.done === false)
+  check('«не выйти за смѣту» закрыто при тратѣ въ предѣлахъ', смѣта([{
+    id: 'q-t', kind: 'expense', amount: 500_00, date: '2026-11-10', accountId: счётъ, categoryId: 'q-lim', createdAt: '2026-11-10',
+  } as (typeof data.transactions)[number]])?.done === true)
+}
 check('закрытыхъ заданій не больше, чѣмъ мѣсяцевъ по три', questsDone(data) >= 0)
 
 // ------------------------------------------------------- кредиты

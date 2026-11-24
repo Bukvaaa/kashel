@@ -80,8 +80,14 @@ export async function buildArchive(data: VaultData): Promise<Archive> {
   const canvases: Record<string, CanvasDoc> = {}
   await Promise.all(
     canvasNames.map(async (n) => {
-      const doc = await readCanvas(n)
-      if (doc) canvases[n] = doc
+      // Испорченная доска не должна ронять весь архив: её текст readCanvas
+      // уже отложил в canvas/<имя>.broken-<дата>.json, остальное едет как есть.
+      try {
+        const doc = await readCanvas(n)
+        if (doc) canvases[n] = doc
+      } catch (e) {
+        console.warn(e)
+      }
     }),
   )
 

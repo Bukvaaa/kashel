@@ -4275,6 +4275,54 @@ async function цитатыЭкраны(root: Root): Promise<Root> {
   return root
 }
 
+/**
+ * Битая доска и недопустимое имя заметки.
+ *
+ * Битая доска открывалась пустой, и первая правка затирала испорченный файл.
+ * Имя заметки с «/» уводило её в подпапку — из списка она пропадала.
+ */
+async function битаяДоскаИИменаЗаметок() {
+  console.log('\n— битая доска и имя заметки —')
+  const ls = dom.window.localStorage
+  const пропсы = (эл: Element | null | undefined) =>
+    Object.entries(эл ?? {}).find(([к]) => к.startsWith('__reactProps$'))?.[1] as Record<string, (e: unknown) => void> | undefined
+
+  const битое = '{"nodes": [ {"id": "a", обрыв'
+  ls.setItem('kashel:canvas/Битая.canvas', битое)
+  await open('Заметки')
+  await open('Канвас')
+  await wait(600)
+  const выбор = document.querySelector('.canvas-tools select') as HTMLSelectElement | null
+  check('битая доска есть в списке', !!выбор && [...выбор.options].some((о) => о.value === 'Битая'))
+  пропсы(выбор)?.onChange?.({ target: { value: 'Битая' } })
+  await wait(700)
+  check('о битой доске сказано вслух', text().includes('испорчена'))
+  const копии = Object.keys(ls).filter((к) => к.startsWith('kashel:canvas/Битая.broken-'))
+  check('содержимое битой доски отложено в копию', копии.length === 1 && ls.getItem(копии[0]) === битое, копии.join(', '))
+  check('сам битый файл не тронут', ls.getItem('kashel:canvas/Битая.canvas') === битое)
+  check('копия не стала доской в списке', ![...(выбор?.options ?? [])].some((о) => о.value.includes('broken')))
+  ls.removeItem('kashel:canvas/Битая.canvas')
+  for (const к of копии) ls.removeItem(к)
+
+  await open('Заметки')
+  await wait(400)
+  const имя = document.querySelector('span[title="Двойной клик — переименовать"]')
+  const было = имя?.textContent || ''
+  check('у заметки есть имя для переименования', !!имя && !!было)
+  имя?.dispatchEvent(new dom.window.MouseEvent('dblclick', { bubbles: true }))
+  await wait(100)
+  // Поле встаёт на место надписи, поэтому ищем его по значению — имени заметки.
+  const поле = all('input[type=text]').find((и) => (и as HTMLInputElement).value === было)
+  пропсы(поле)?.onChange?.({ target: { value: 'Планы/май' } })
+  await wait(50)
+  пропсы(поле)?.onBlur?.({})
+  await wait(700)
+  const ключи = Object.keys(ls).filter((к) => к.startsWith('kashel:notes/'))
+  check('заметка с «/» не ушла в подпапку', ключи.includes('kashel:notes/Планы_май.md') && !ключи.some((к) => к.startsWith('kashel:notes/Планы/')), ключи.join(', '))
+  check('прежнего имени больше нет', !ключи.includes(`kashel:notes/${было}.md`))
+  check('заметка видна в списке под новым именем', text().includes('Планы_май'))
+}
+
 async function main() {
   seedStorage()
   let root = mount()
@@ -4317,6 +4365,7 @@ async function main() {
   await canvasWidgets()
   await свойВиджет()
   await бегПоЛиниям()
+  await битаяДоскаИИменаЗаметок()
   await dashboardWipe()
   await transactionsBulk()
   await entryDateFollowsPeriod()

@@ -1,5 +1,5 @@
 import type { CanvasDoc, Transaction, VaultData } from '../lib/types'
-import { monthKey } from '../lib/date'
+import { monthKey, today } from '../lib/date'
 import { т } from '../i18n'
 
 // Обёртка над файловым API Electron. В обычном браузере (vite без Electron)
@@ -296,22 +296,43 @@ export async function listCanvases(): Promise<string[]> {
   return files.map((f) => f.replace(/\.canvas$/, '')).sort((a, b) => a.localeCompare(b, 'ru'))
 }
 
+/** Ошибка «доска испорчена»: её текст уже сохранён в отдельный файл. */
+export class ДоскаИспорчена extends Error {
+  constructor(public readonly имя: string, public readonly копия: string) {
+    super(т('Доска «{0}» испорчена и не читается. Её содержимое сохранено в {1}', имя, копия))
+  }
+}
+
+/**
+ * Читает доску. Нет файла — null; файл не разбирается — ДоскаИспорчена.
+ *
+ * Прежде битая доска молча становилась пустой, и первая же правка писала
+ * поверх испорченного файла: всё, что ещё можно было спасти руками,
+ * пропадало. Теперь текст сперва откладывается рядом, в canvas/<имя>.broken-
+ * <дата>.json — у него не то окончание, и списком досок он не подхватывается.
+ */
 export async function readCanvas(name: string): Promise<CanvasDoc | null> {
   const raw = await bridge.read(canvasPath(name))
   if (!raw) return null
+  let doc: CanvasDoc | null = null
   try {
-    const doc = JSON.parse(raw) as CanvasDoc
-    // Оформление доски и её быстрые цвета — часть документа наравне с узлами:
-    // они пишутся при каждой правке, и терять их при чтении нельзя.
-    return {
-      nodes: doc.nodes || [],
-      edges: doc.edges || [],
-      ...(doc.cardStyle ? { cardStyle: doc.cardStyle } : {}),
-      ...(doc.edgeShape ? { edgeShape: doc.edgeShape } : {}),
-      ...(doc.quickColors?.length ? { quickColors: doc.quickColors } : {}),
-    }
+    doc = JSON.parse(raw) as CanvasDoc
   } catch {
-    return null
+    doc = null
+  }
+  if (!doc || typeof doc !== 'object' || Array.isArray(doc)) {
+    const копия = `canvas/${name}.broken-${today()}.json`
+    await bridge.write(копия, raw)
+    throw new ДоскаИспорчена(name, копия)
+  }
+  // Оформление доски и её быстрые цвета — часть документа наравне с узлами:
+  // они пишутся при каждой правке, и терять их при чтении нельзя.
+  return {
+    nodes: Array.isArray(doc.nodes) ? doc.nodes : [],
+    edges: Array.isArray(doc.edges) ? doc.edges : [],
+    ...(doc.cardStyle ? { cardStyle: doc.cardStyle } : {}),
+    ...(doc.edgeShape ? { edgeShape: doc.edgeShape } : {}),
+    ...(doc.quickColors?.length ? { quickColors: doc.quickColors } : {}),
   }
 }
 

@@ -5,6 +5,7 @@ import { useStore } from '../state/store'
 import { Icon } from '../lib/icons'
 import { money, moneyShort } from '../lib/format'
 import { deleteNote, listNotes, readNote, renameNote, writeNote } from '../state/vault'
+import { safeFileName } from '../engine/archive'
 import { extractLinks, extractTags, noteExcerpt, renderMarkdown } from '../lib/markdown'
 import { QueryBlock } from '../components/QueryBlock'
 import { Confirm, InlineEdit, useToast } from '../components/ui'
@@ -99,15 +100,45 @@ export default function Notes({ note }: { note?: string }) {
     void open(name)
   }
 
-  const rename = async (next: string) => {
-    if (!next || next === current || all.some((x) => x.name === next)) return
-    await renameNote(current, next)
+  const rename = async (raw: string) => {
+    // Имя заметки — имя файла. «/» уводил заметку в подпапку, где список её
+    // не видел, а «:» или «?» роняли переименование молча.
+    const next = raw.trim() ? safeFileName(raw) : ''
+    if (!next || next === current) return
+    if (all.some((x) => x.name.toLowerCase() === next.toLowerCase() && x.name !== current)) {
+      toast(т('Заметка «{0}» уже есть', next))
+      return
+    }
+    // Отложенная запись иначе дописала бы текст под старым именем уже после
+    // переименования, и прежняя заметка воскресла бы рядом с новой.
+    if (saveTimer.current) {
+      window.clearTimeout(saveTimer.current)
+      saveTimer.current = null
+      try {
+        await writeNote(current, body)
+      } catch (e) {
+        toast(т('Заметка не сохранена: ') + (e instanceof Error ? e.message : String(e)))
+        return
+      }
+    }
+    try {
+      await renameNote(current, next)
+    } catch (e) {
+      toast(т('Не удалось переименовать: ') + (e instanceof Error ? e.message : String(e)))
+      return
+    }
     await reload()
     setCurrent(next)
-    toast(т('Переименовано'))
+    toast(next === raw.trim() ? т('Переименовано') : т('Переименовано в «{0}»', next))
   }
 
   const followLink = async (name: string) => {
+    // Ссылка [[a/b]] не может стать заметкой: такое имя файла недопустимо,
+    // а заменённое «a_b» уже не совпало бы со ссылкой.
+    if (safeFileName(name) !== name.trim()) {
+      toast(т('В имени заметки не может быть знаков \\ / : * ? " < > |: «{0}»', name))
+      return
+    }
     const exists = all.some((x) => x.name === name)
     if (!exists) {
       await writeNote(name, `# ${name}\n\n`)

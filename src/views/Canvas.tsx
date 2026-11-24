@@ -304,7 +304,14 @@ export default function CanvasView({ name }: { name?: string }) {
 
   const openCanvas = async (n: string) => {
     setCurrent(n)
-    const d = await readCanvas(n)
+    let d: CanvasDoc | null = null
+    try {
+      d = await readCanvas(n)
+    } catch (e) {
+      // Испорченная доска открывается пустой, но её текст уже отложен в
+      // отдельный файл — об этом и говорим, чтобы правка поверх не пугала.
+      toast(e instanceof Error ? e.message : String(e))
+    }
     setDoc(d ?? { nodes: [], edges: [] })
     забыть()
     setSel(new Set())
