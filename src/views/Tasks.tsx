@@ -13,7 +13,7 @@ import { clock, usePomodoro } from '../components/PomodoroHost'
 import { звук } from '../lib/zvuki'
 import { ЗвукиНастройки } from '../components/ZvukiNastroyki'
 import {
-  daysWithTasks, isImportant, isOverdue, plannedTotals, PRIORITIES, priorityOf, QUADRANTS, quadrantOf,
+  задачиПоДням, средняяВажность, долиДня, type ЗадачиДня, isImportant, isOverdue, plannedTotals, PRIORITIES, priorityOf, QUADRANTS, quadrantOf,
   sortTasks, tasksOn, вЧетверть, переключитьВажность, времяВперёд, времяЗадачи, форматВремени, type Priority, type Quadrant,
 } from '../engine/tasks'
 import { useApp } from '../App'
@@ -243,15 +243,48 @@ function Список({ onEdit }: { onEdit: (t: Task) => void }) {
 
 // --------------------------------------------------------------- календарь
 
+/** Цвета важностей — те же переменные темы, что у строк задач. */
+const ЦВЕТ_ВАЖНОСТИ = ['var(--good)', 'var(--info)', 'var(--warn)', 'var(--alert)']
+
+/**
+ * Заливка дня из всех его задач: средняя важность ложится между двумя
+ * соседними цветами. Одна высокая и пять средних — оранжевый с краснотой.
+ */
+function заливкаДня(д: ЗадачиДня): React.CSSProperties | undefined {
+  const ср = средняяВажность(д)
+  if (ср == null) return undefined
+  const низ = Math.floor(ср)
+  const верх = Math.min(3, низ + 1)
+  const доля = Math.round((ср - низ) * 100)
+  const цвет = доля > 0 && верх !== низ
+    ? `color-mix(in srgb, ${ЦВЕТ_ВАЖНОСТИ[верх]} ${доля}%, ${ЦВЕТ_ВАЖНОСТИ[низ]})`
+    : ЦВЕТ_ВАЖНОСТИ[низ]
+  return {
+    background: `color-mix(in srgb, ${цвет} 32%, transparent)`,
+    borderColor: `color-mix(in srgb, ${цвет} 60%, transparent)`,
+  }
+}
+
+/** Подсказка дня: сколько задач какой важности и какая это доля. */
+function подсказкаДня(д: ЗадачиДня): string {
+  const доли = долиДня(д)
+  const всего = доли.reduce((s, x) => s + x.n, 0)
+  return [
+    т('Задач: {0}', всего),
+    ...доли.map((x) => `${PRIORITIES[x.p].t}: ${x.n} · ${x.pct}%`),
+  ].join('\n')
+}
+
 function Календарь({ onEdit, sel, setSel }: {
   onEdit: (t: Task) => void
   sel: string
   setSel: (d: string) => void
 }) {
-  const { data } = useStore()
+  const { data, patchSettings } = useStore()
   const [anchor, setAnchor] = useState(today())
   const mk = monthKey(anchor)
-  const отмечены = useMemo(() => daysWithTasks(data, mk), [data, mk])
+  const отмечены = useMemo(() => задачиПоДням(data, mk), [data, mk])
+  const вид = data.settings.taskCalendarView ?? 'bar'
 
   const первый = parseInt(mk.slice(5, 7), 10) - 1
   const год = parseInt(mk.slice(0, 4), 10)
@@ -274,6 +307,12 @@ function Календарь({ onEdit, sel, setSel }: {
             <Icon name="right" size={15} />
           </button>
           <span className="spacer" />
+          <div className="seg" title={т('Как показывать важность дня')}>
+            <button type="button" className={вид === 'bar' ? 'on' : ''} onClick={() => patchSettings({ taskCalendarView: undefined })}
+              title={т('Полоска под числом: какая доля задач какой важности')}>{т('Полоска')}</button>
+            <button type="button" className={вид === 'gradient' ? 'on' : ''} onClick={() => patchSettings({ taskCalendarView: 'gradient' })}
+              title={т('День залит цветом, смешанным из всех его задач')}>{т('Градиент')}</button>
+          </div>
           <button className="btn sm ghost" onClick={() => { setAnchor(today()); setSel(today()) }}>{т('Сегодня')}</button>
         </div>
 
@@ -282,15 +321,24 @@ function Календарь({ onEdit, sel, setSel }: {
           {Array.from({ length: сдвиг }, (_, i) => <div key={'x' + i} />)}
           {Array.from({ length: дней }, (_, i) => {
             const день = `${mk}-${String(i + 1).padStart(2, '0')}`
+            const д = отмечены.get(день)
             return (
               <button
                 key={день}
                 className={'task-cal-day' + (день === sel ? ' on' : '') + (день === today() ? ' now' : '')
-                  + (отмечены.has(день) ? ' has p' + отмечены.get(день) : '')}
-                title={отмечены.has(день) ? т('Есть задачи · важность: {0}', PRIORITIES[отмечены.get(день)!].t.toLowerCase()) : undefined}
+                  + (д ? ' has ' + (вид === 'bar' ? 'bar' : 'mix') : '')}
+                style={д && вид === 'gradient' && день !== sel ? заливкаДня(д) : undefined}
+                title={д ? подсказкаДня(д) : undefined}
                 onClick={() => setSel(день)}
               >
                 {i + 1}
+                {д && вид === 'bar' && (
+                  <span className="task-cal-bar" aria-hidden="true">
+                    {долиДня(д).map((x) => (
+                      <span key={x.p} style={{ flexBasis: x.pct + '%', background: ЦВЕТ_ВАЖНОСТИ[x.p] }} />
+                    ))}
+                  </span>
+                )}
               </button>
             )
           })}

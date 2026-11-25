@@ -171,9 +171,53 @@ export function времяВперёд(data: VaultData, now: string = today(), f
 export const tasksOn = (data: VaultData, day: string): Task[] =>
   (data.tasks ?? []).filter((t) => t.due === day)
 
+/** Сколько открытых задач каждой важности на день: [нет, низкая, средняя, высокая]. */
+export type ЗадачиДня = [number, number, number, number]
+
+/** Открытые задачи месяца по дням и важностям — для заливки и полоски календаря. */
+export function задачиПоДням(data: VaultData, mk: string): Map<string, ЗадачиДня> {
+  const out = new Map<string, ЗадачиДня>()
+  for (const t of data.tasks ?? []) {
+    if (!t.due || t.due.slice(0, 7) !== mk || t.done) continue
+    const день = out.get(t.due) ?? [0, 0, 0, 0]
+    день[priorityOf(t)]++
+    out.set(t.due, день)
+  }
+  return out
+}
+
 /**
- * Дни месяца, на которых что-то висит, и самая высокая важность в этот день:
- * календарь заливает день её цветом.
+ * Средняя важность дня от 0 до 3. Одна высокая и пять средних — 2,17: день
+ * ближе к оранжевому, чем к красному. Пустой день — null.
+ */
+export function средняяВажность(д: ЗадачиДня): number | null {
+  const всего = д[0] + д[1] + д[2] + д[3]
+  if (!всего) return null
+  return (д[1] + 2 * д[2] + 3 * д[3]) / всего
+}
+
+/**
+ * Доли важностей дня в процентах, от высокой к низкой, без пустых. Проценты
+ * округлены так, что в сумме всегда 100.
+ */
+export function долиДня(д: ЗадачиДня): { p: Priority; n: number; pct: number }[] {
+  const всего = д[0] + д[1] + д[2] + д[3]
+  if (!всего) return []
+  const части = ([3, 2, 1, 0] as Priority[]).filter((p) => д[p] > 0).map((p) => ({ p, n: д[p], точно: (д[p] * 100) / всего }))
+  const out = части.map((ч) => ({ p: ч.p, n: ч.n, pct: Math.floor(ч.точно) }))
+  // Остаток от округления — тем, у кого дробная часть больше.
+  let остаток = 100 - out.reduce((s, x) => s + x.pct, 0)
+  const порядок = части.map((ч, i) => ({ i, дробь: ч.точно - Math.floor(ч.точно) })).sort((a, b) => b.дробь - a.дробь)
+  for (const { i } of порядок) {
+    if (остаток <= 0) break
+    out[i].pct++
+    остаток--
+  }
+  return out
+}
+
+/**
+ * Дни месяца, на которых что-то висит, и самая высокая важность в этот день.
  */
 export function daysWithTasks(data: VaultData, mk: string): Map<string, Priority> {
   const out = new Map<string, Priority>()
