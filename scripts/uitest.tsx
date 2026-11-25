@@ -4114,6 +4114,12 @@ async function потокиПусто() {
  * проверки подкладываем сами. Ни одна подпись не должна прятаться.
  */
 async function потокиВсеПодписи(root: Root): Promise<Root> {
+  if (process.env.UI_SAVE_STATE) {
+    const ls = dom.window.localStorage
+    const снимок: Record<string, string> = {}
+    for (let i = 0; i < ls.length; i++) снимок[ls.key(i)!] = ls.getItem(ls.key(i)!)!
+    require('fs').writeFileSync(process.env.UI_SAVE_STATE, JSON.stringify(снимок))
+  }
   console.log('\n— граф: на «Потоках» подписан каждый узел —')
   await wait(1300)
   root.unmount()
@@ -4378,6 +4384,22 @@ async function main() {
   seedStorage()
   let root = mount()
   await wait(1700)
+
+  // UI_ONLY=flows — только подписи «Потоков»: секунды вместо десяти минут.
+  if (process.env.UI_ONLY === 'flows') {
+    if (process.env.UI_LOAD_STATE) {
+      root.unmount()
+      const ls = dom.window.localStorage
+      ls.clear()
+      for (const [к, з] of Object.entries(JSON.parse(require('fs').readFileSync(process.env.UI_LOAD_STATE, 'utf8')) as Record<string, string>)) ls.setItem(к, з)
+      root = mount()
+      await wait(1800)
+    }
+    root = await потокиВсеПодписи(root)
+    console.log(`провалено проверок: ${fails.length}`)
+    for (const f of fails) console.log('  ✗ ' + f)
+    process.exit(fails.length ? 1 : 0)
+  }
 
   await sections()
   await updates()
