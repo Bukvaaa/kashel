@@ -425,6 +425,24 @@
 .edge-style-pop { left: 50%; transform: translateX(-50%); }
 .canvas-lines-pop { left: 0; }
 
+/* Имя доски — щелчок переименовывает; рядом — список всех досок. */
+.canvas-name { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; justify-content: flex-start; }
+.canvas-boards { position: relative; }
+.canvas-boards-pop {
+  position: absolute; top: calc(100% + 8px); left: 0; z-index: 41; width: 240px; max-height: 360px; overflow: auto;
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow); padding: 6px;
+}
+.canvas-board-item {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--radius-sm);
+  cursor: pointer; user-select: none;
+}
+.canvas-board-item:hover { background: var(--panel-2); }
+.canvas-board-item.on { color: var(--accent-ink); font-weight: 600; }
+.canvas-board-item.drag { opacity: .45; }
+.canvas-board-item > svg { flex: none; color: var(--faint); cursor: grab; }
+.canvas-board-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* --------------------------------------------------------- вид линии */
 .liniya-panel { display: flex; flex-direction: column; gap: 8px; }
 .liniya-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }

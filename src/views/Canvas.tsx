@@ -18,7 +18,8 @@ import { НастройкаЛинии } from '../components/canvas/NastroykaLini
 import { priorityOf, sortTasks } from '../engine/tasks'
 import { safeFileName } from '../engine/archive'
 import type { Account, Goal, ВидЛинии, EdgeShape, Task } from '../lib/types'
-import { Confirm, useToast } from '../components/ui'
+import { Confirm, useToast, useЗакрытьСнаружи } from '../components/ui'
+import { переставитьДоску, упорядочитьДоски } from '../lib/poryadokDosok'
 import { ContextMenu, type MenuItem } from '../components/canvas/ContextMenu'
 import { buildCardContext, CARD_STYLES, DEFAULT_FONT_SIZE, NodeBody, nodeData, выравниваниеУзла, поВертикалиУзла } from '../components/canvas/nodes'
 import { ColorPalette } from '../components/canvas/ColorPalette'
@@ -166,6 +167,12 @@ const ЦВЕТ_ВАЖНОСТИ = ['var(--accent)', 'var(--info)', 'var(--warn)'
 export default function CanvasView({ name }: { name?: string }) {
   const app = useApp()
   const { data, setData, upsertTask, upsertAccount, upsertGoal, отметитьДействие, patchSettings } = useStore()
+  const dataRef = useRef(data)
+  dataRef.current = data
+  const [списокДосок, setСписокДосок] = useState(false)
+  const [тащимДоску, setТащимДоску] = useState<string | null>(null)
+  const списокДосокRef = useRef<HTMLDivElement>(null)
+  useЗакрытьСнаружи(списокДосокRef, списокДосок, () => setСписокДосок(false))
   const toast = useToast()
   const удаление = useУдаление()
 
@@ -295,15 +302,23 @@ export default function CanvasView({ name }: { name?: string }) {
       // Карточки-заметки показывают содержимое, поэтому тексты нужны сразу.
       const bodies = await Promise.all(names.map(async (n) => [n, (await readNote(n)) || ''] as const))
       setNoteBodies(new Map(bodies))
-      const pick = name || list[0] || ''
+      // Без явного имени открывается та доска, на которой человек был в
+      // последний раз, — а не первая по алфавиту.
+      const последняя = data.settings.lastCanvas
+      const pick = name || (последняя && list.includes(последняя) ? последняя : упорядочитьДоски(list, data.settings.canvasOrder)[0]) || ''
       if (pick) void openCanvas(pick)
       else setCurrent('')
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name])
 
+  const запомнитьДоску = (n: string) => {
+    if (n && dataRef.current.settings.lastCanvas !== n) patchSettings({ lastCanvas: n })
+  }
+
   const openCanvas = async (n: string) => {
     setCurrent(n)
+    запомнитьДоску(n)
     let d: CanvasDoc | null = null
     try {
       d = await readCanvas(n)
@@ -344,7 +359,7 @@ export default function CanvasView({ name }: { name?: string }) {
         void openCanvas(имя)
       })().catch((e) => toast(т('Доска не вернулась: ') + (e instanceof Error ? e.message : String(e)))),
     )
-    if (list.length) void openCanvas(list[0])
+    if (list.length) void openCanvas(упорядочитьДоски(list, dataRef.current.settings.canvasOrder)[0])
     else {
       setCurrent('')
       setDoc({ nodes: [], edges: [] })
@@ -1128,6 +1143,9 @@ export default function CanvasView({ name }: { name?: string }) {
     }
     setFiles(await listCanvases())
     setCurrent(имя)
+    запомнитьДоску(имя)
+    const порядок = dataRef.current.settings.canvasOrder
+    if (порядок?.includes(было)) patchSettings({ canvasOrder: порядок.map((f) => (f === было ? имя : f)) })
     отметитьДействие()
     toast(т('Доска переименована: «{0}»', имя))
   }
@@ -2000,15 +2018,62 @@ export default function CanvasView({ name }: { name?: string }) {
             onBlur={() => void переименовать()}
           />
         ) : (
-          <select value={current} onChange={(e) => void openCanvas(e.target.value)} style={{ width: 160 }}>
-            {files.map((f) => (
-              <option key={f} value={f}>{f}</option>
-            ))}
-          </select>
+          <button
+            type="button"
+            className="btn sm ghost canvas-name"
+            title={т('Щёлкните, чтобы переименовать доску')}
+            disabled={!current}
+            onClick={() => setНовоеИмя(current)}
+          >
+            {current || т('Нет досок')}
+          </button>
         )}
-        <button className="icon-btn" title={т('Переименовать доску')} onClick={() => setНовоеИмя(current)}>
-          <Icon name="edit" size={15} />
-        </button>
+        <div className="canvas-boards" ref={списокДосокRef}>
+          <button
+            type="button"
+            className={'icon-btn' + (списокДосок ? ' on' : '')}
+            title={т('Все доски — выбрать или перетащить в нужном порядке')}
+            aria-haspopup="listbox"
+            aria-expanded={списокДосок}
+            onClick={() => setСписокДосок((v) => !v)}
+          >
+            <Icon name={списокДосок ? 'up' : 'down'} size={14} />
+          </button>
+          {списокДосок && (
+            <div className="canvas-boards-pop" role="listbox">
+              <div className="faint small" style={{ padding: '2px 8px 6px' }}>{т('Перетащите, чтобы поменять порядок')}</div>
+              {упорядочитьДоски(files, data.settings.canvasOrder).map((f) => (
+                <div
+                  key={f}
+                  role="option"
+                  aria-selected={f === current}
+                  className={'canvas-board-item' + (f === current ? ' on' : '') + (f === тащимДоску ? ' drag' : '')}
+                  draggable
+                  onDragStart={(e) => {
+                    setТащимДоску(f)
+                    e.dataTransfer.effectAllowed = 'move'
+                    e.dataTransfer.setData('text/plain', f)
+                  }}
+                  onDragOver={(e) => {
+                    if (!тащимДоску) return
+                    e.preventDefault()
+                    if (тащимДоску === f) return
+                    patchSettings({ canvasOrder: переставитьДоску(упорядочитьДоски(files, dataRef.current.settings.canvasOrder), тащимДоску, f) })
+                  }}
+                  onDrop={(e) => e.preventDefault()}
+                  onDragEnd={() => setТащимДоску(null)}
+                  onClick={() => {
+                    if (f !== current) void openCanvas(f)
+                    setСписокДосок(false)
+                  }}
+                >
+                  <Icon name="menu" size={13} />
+                  <span className="canvas-board-name">{f}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <button className="icon-btn" title={т('Новая доска')} onClick={createCanvas}>
           <Icon name="plus" size={16} />
         </button>
