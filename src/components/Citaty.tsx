@@ -9,7 +9,7 @@ import { т, текущійЯзык } from '../i18n'
 import { ДЕВИЗ, type Цитата } from '../citaty/baza'
 import type { Автор } from '../citaty/avtory'
 import { ПОРТРЕТЫ } from '../citaty/portrety'
-import { авторЦитаты, выбратьНаДень, ещёЦитата, обстановка, разрезать, цитатаПоId } from '../citaty/vybor'
+import { авторЦитаты, выбратьНаДень, ещёЦитата, новоеЗерно, обстановка, разрезать, цитатаПоId } from '../citaty/vybor'
 import type { НастройкиЦитат } from '../lib/types'
 import { ContextMenu } from './canvas/ContextMenu'
 
@@ -53,7 +53,7 @@ export function useЦитатаДня(): Цитата {
   // Положение зависит только от денег — пересчитывать его на каждую правку настроек незачем.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const обст = useMemo(() => обстановка(data, день), [data.accounts, data.transactions, день])
-  const id = useMemo(() => выбратьНаДень(день, q?.days, обст, q?.tone ?? 'neutral'), [день, q?.days, обст, q?.tone])
+  const id = useMemo(() => выбратьНаДень(день, q?.days, обст, q?.tone ?? 'neutral', q?.seed ?? ''), [день, q?.days, обст, q?.tone, q?.seed])
   return цитатаПоId(id) ?? цитатаПоId(ДЕВИЗ)!
 }
 
@@ -169,6 +169,7 @@ export function ЦитатаДняСтрока() {
 export function ЦитатаОкно({ onClose, начальная }: { onClose: () => void; начальная?: Цитата }) {
   const дня = useЦитатаДня()
   const звезда = useЗвезда()
+  const { data } = useStore()
   const [показ, setПоказ] = useState<Цитата>(начальная ?? дня)
   const [номер, setНомер] = useState(0)
   const [было, setБыло] = useState<string[]>([(начальная ?? дня).id])
@@ -194,7 +195,7 @@ export function ЦитатаОкно({ onClose, начальная }: { onClose:
   const оговорка = оговоркаЦ(показ)
   const отмечена = звезда.есть(показ.id)
   const ещё = () => {
-    const н = ещёЦитата(today(), номер + 1, было)
+    const н = ещёЦитата(today(), номер + 1, было, data.settings.quotes?.tone ?? 'neutral', data.settings.quotes?.seed ?? '')
     setНомер(номер + 1)
     setБыло([...было, н.id].slice(-40))
     setПоказ(н)
@@ -278,8 +279,12 @@ export function ЦитатыХост() {
   const q: НастройкиЦитат = data.settings.quotes ?? {}
 
   useEffect(() => {
-    if (!ready || q.days?.[день] === ц.id) return
-    patchQuotes((было) => (было.days?.[день] ? было : { ...было, days: { ...было.days, [день]: ц.id } }))
+    if (!ready || (q.days?.[день] === ц.id && q.seed)) return
+    patchQuotes((было) => ({
+      ...было,
+      seed: было.seed ?? новоеЗерно(),
+      days: было.days?.[день] ? было.days : { ...было.days, [день]: ц.id },
+    }))
   }, [ready, день, ц.id, q.days, patchQuotes])
 
   const естьДанные = data.transactions.length > 0 || data.accounts.length > 0
@@ -334,7 +339,16 @@ export function НастройкиЦитатКарточка() {
         <span style={{ flex: 1, minWidth: 160 }}>{т('Стиль общения')}</span>
         <div className="seg">
           {ТОН.map((о) => (
-            <button key={о.v} className={тон === о.v ? 'on' : ''} onClick={() => patchQuotes((x) => ({ ...x, tone: о.v }))}>
+            <button
+              key={о.v}
+              className={тон === о.v ? 'on' : ''}
+              onClick={() => patchQuotes((x) => {
+                if ((x.tone ?? 'neutral') === о.v) return x
+                // Новый стиль виден сразу: сегодняшняя цитата выбирается заново.
+                const { [today()]: _сегодня, ...дни } = x.days ?? {}
+                return { ...x, tone: о.v, days: дни }
+              })}
+            >
               {о.t}
             </button>
           ))}
