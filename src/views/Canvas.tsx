@@ -2021,9 +2021,9 @@ export default function CanvasView({ name }: { name?: string }) {
           <button
             type="button"
             className="btn sm ghost canvas-name"
-            title={т('Щёлкните, чтобы переименовать доску')}
+            title={т('Двойной щелчок — переименовать доску')}
             disabled={!current}
-            onClick={() => setНовоеИмя(current)}
+            onDoubleClick={() => setНовоеИмя(current)}
           >
             {current || т('Нет досок')}
           </button>

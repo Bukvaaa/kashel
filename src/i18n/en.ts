@@ -2267,7 +2267,7 @@ export const EN: Record<string, string> = {
   'Вид этой линии: форма, толщина, штрих, стрелки, цвет': 'Style of this line: shape, width, stroke, arrows, colour',
   ' Вид линии': ' Line style',
   'Удалить связь (Del)': 'Delete link (Del)',
-  'Щёлкните, чтобы переименовать доску': 'Click to rename the board',
+  'Двойной щелчок — переименовать доску': 'Double-click to rename the board',
   'Нет досок': 'No boards',
   'Все доски — выбрать или перетащить в нужном порядке': 'All boards — pick one or drag them into order',
   'Перетащите, чтобы поменять порядок': 'Drag to reorder',
