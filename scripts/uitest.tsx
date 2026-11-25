@@ -148,6 +148,23 @@ const mouse = (el: any, type: string, x: number, y: number, opts: Record<string,
 const key = (k: string, opts: Record<string, unknown> = {}) =>
   dom.window.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: k, bubbles: true, ...opts }))
 const all = (sel: string) => [...document.querySelectorAll(sel)]
+/** Канвас: имя открытой доски, все доски по списку и выбор доски через список. */
+const текущаяДоска = () => (document.querySelector('.canvas-tools .canvas-name')?.textContent || '').trim()
+const открытьСписокДосок = async () => {
+  if (!document.querySelector('.canvas-boards-pop')) click(document.querySelector('.canvas-boards .icon-btn'))
+  await wait(100)
+}
+const всеДоски = async () => {
+  await открытьСписокДосок()
+  const имена = all('.canvas-board-name').map((x) => x.textContent || '')
+  click(document.querySelector('.canvas-boards .icon-btn'))
+  await wait(50)
+  return имена
+}
+const выбратьДоску = async (имя: string) => {
+  await открытьСписокДосок()
+  click(all('.canvas-board-item').find((x) => x.querySelector('.canvas-board-name')?.textContent === имя))
+}
 const menuItem = (label: string) =>
   all('.ctx-menu .ctx-item').find((b) => (b.textContent || '').includes(label)) as any
 const byText = (sel: string, needle: string) =>
@@ -1079,7 +1096,7 @@ async function свойВиджет() {
   console.log('\n— свой виджет на доске —')
   await open('Канвас')
   await wait(600)
-  const доска = () => (document.querySelector('.canvas-tools select') as HTMLSelectElement).value
+  const доска = текущаяДоска
   const перваяДоска = доска()
   const свои = () => all('.cnode-t-widget').filter((n) => n.querySelector('.cw[data-widget="custom"]'))
   const полкаВиджет = () => click(all('.canvas-dock .dock-btn').find((b) => (b.textContent || '').includes('Виджет')))
@@ -1162,9 +1179,7 @@ async function свойВиджет() {
   click(сохранить())
   await wait(500)
   check('правка видна на этой доске', (свои()[0]?.querySelector('.cw-title')?.textContent || '') === 'Продукты от дохода' && !!свои()[0]?.querySelector('.cw[data-view="number"]'))
-  const выбор = document.querySelector('.canvas-tools select') as HTMLSelectElement
-  выбор.value = перваяДоска
-  выбор.dispatchEvent(new dom.window.Event('change', { bubbles: true }))
+  await выбратьДоску(перваяДоска)
   await wait(700)
   check('и на первой доске — та же правка', свои().some((n) => (n.querySelector('.cw-title')?.textContent || '') === 'Продукты от дохода'))
 
@@ -1195,12 +1210,9 @@ async function свойВиджет() {
     ],
     edges: [],
   })
-  выбор.value = перваяДоска
-  выбор.dispatchEvent(new dom.window.Event('change', { bubbles: true }))
+  await выбратьДоску(перваяДоска)
   await wait(400)
-  const выбор2 = document.querySelector('.canvas-tools select') as HTMLSelectElement
-  выбор2.value = втораяДоска
-  выбор2.dispatchEvent(new dom.window.Event('change', { bubbles: true }))
+  await выбратьДоску(втораяДоска)
   await wait(700)
   check('незнакомый виджет — заглушка, доска открылась', !!document.querySelector('.cw[data-widget="unknown"]') && text().includes('более новой версией'))
   check('свой виджет без библиотеки и копии — тоже заглушка', !!document.querySelector('.cnode .cw[data-widget="custom"] .cw-empty'))
@@ -1228,7 +1240,7 @@ async function бегПоЛиниям() {
   console.log('\n— бег по линиям —')
   await open('Канвас')
   await wait(600)
-  const доска = (document.querySelector('.canvas-tools select') as HTMLSelectElement).value
+  const доска = текущаяДоска()
   const файл = await readCanvas(доска)
   // Карточка с самым большим числом связей.
   const связиУ = (id: string) => (файл?.edges ?? []).filter((e) => e.fromNode === id || e.toNode === id).length
@@ -3160,11 +3172,11 @@ async function правкиЭкраны() {
   await wait(200)
   click(document.querySelector('.canvas-lines-pop .liniya-shape-line'))
   await wait(1300)
-  const имяДоски = (document.querySelector('.canvas-tools select') as HTMLSelectElement).value
+  const имяДоски = текущаяДоска()
   check('форма линий по умолчанию сохраняется — для всех досок', (await loadVault()).settings.canvasLines?.shape === 'line')
   click(document.querySelector('.canvas-tools .canvas-lines-btn'))
   await wait(150)
-  click(document.querySelector('.canvas-tools [title="Переименовать доску"]'))
+  click(document.querySelector('.canvas-tools .canvas-name'))
   await wait(100)
   const поле = document.querySelector('.canvas-rename')
   ввести(поле, 'Схема проекта')
@@ -3226,7 +3238,7 @@ async function связиИВремя() {
   const ls = dom.window.localStorage
   await open('Канвас')
   await wait(600)
-  const имя = (document.querySelector('.canvas-tools select') as HTMLSelectElement).value
+  const имя = текущаяДоска()
   const доска = () => JSON.parse(ls.getItem(`kashel:canvas/${имя}.canvas`) || '{"nodes":[],"edges":[]}')
   const вид = () => {
     const м = (document.querySelector('.canvas-layer') as HTMLElement).style.transform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\) scale\(([-\d.]+)\)/)!
@@ -4281,6 +4293,42 @@ async function цитатыЭкраны(root: Root): Promise<Root> {
  * Битая доска открывалась пустой, и первая правка затирала испорченный файл.
  * Имя заметки с «/» уводило её в подпапку — из списка она пропадала.
  */
+async function выпадашкиИПоследняяДоска() {
+  console.log('\n— выпадашки закрываются, канвас помнит доску —')
+  await open('Дашборд')
+  const кнопкаСчёта = () => document.querySelector('.hero .row > div > .btn.ghost')
+  const выборОткрыт = () => all('.hero .card-title').some((x) => (x.textContent || '') === 'Выберите счёт')
+  click(кнопкаСчёта())
+  await wait(150)
+  const открылся = выборОткрыт()
+  document.body.dispatchEvent(new dom.window.Event('pointerdown', { bubbles: true }))
+  await wait(150)
+  check('выбор счёта закрывается щелчком мимо', открылся && !выборОткрыт())
+  click(кнопкаСчёта())
+  await wait(150)
+  dom.window.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+  await wait(150)
+  check('и закрывается по Esc', !выборОткрыт())
+
+  await open('Канвас')
+  await wait(600)
+  const доски = await всеДоски()
+  const другая = доски.find((д) => д !== текущаяДоска())
+  if (другая) {
+    await выбратьДоску(другая)
+    await wait(500)
+    await open('Заметки')
+    await open('Канвас')
+    await wait(600)
+    check('канвас открывается на последней доске', текущаяДоска() === другая, `${текущаяДоска()} вместо ${другая}`)
+  }
+  await открытьСписокДосок()
+  const списокОткрыт = !!document.querySelector('.canvas-boards-pop')
+  document.body.dispatchEvent(new dom.window.Event('pointerdown', { bubbles: true }))
+  await wait(150)
+  check('список досок закрывается щелчком мимо', списокОткрыт && !document.querySelector('.canvas-boards-pop'))
+}
+
 async function битаяДоскаИИменаЗаметок() {
   console.log('\n— битая доска и имя заметки —')
   const ls = dom.window.localStorage
@@ -4292,15 +4340,14 @@ async function битаяДоскаИИменаЗаметок() {
   await open('Заметки')
   await open('Канвас')
   await wait(600)
-  const выбор = document.querySelector('.canvas-tools select') as HTMLSelectElement | null
-  check('битая доска есть в списке', !!выбор && [...выбор.options].some((о) => о.value === 'Битая'))
-  пропсы(выбор)?.onChange?.({ target: { value: 'Битая' } })
+  check('битая доска есть в списке', (await всеДоски()).includes('Битая'))
+  await выбратьДоску('Битая')
   await wait(700)
   check('о битой доске сказано вслух', text().includes('испорчена'))
   const копии = Object.keys(ls).filter((к) => к.startsWith('kashel:canvas/Битая.broken-'))
   check('содержимое битой доски отложено в копию', копии.length === 1 && ls.getItem(копии[0]) === битое, копии.join(', '))
   check('сам битый файл не тронут', ls.getItem('kashel:canvas/Битая.canvas') === битое)
-  check('копия не стала доской в списке', ![...(выбор?.options ?? [])].some((о) => о.value.includes('broken')))
+  check('копия не стала доской в списке', !(await всеДоски()).some((о) => о.includes('broken')))
   ls.removeItem('kashel:canvas/Битая.canvas')
   for (const к of копии) ls.removeItem(к)
 
@@ -4366,6 +4413,7 @@ async function main() {
   await свойВиджет()
   await бегПоЛиниям()
   await битаяДоскаИИменаЗаметок()
+  await выпадашкиИПоследняяДоска()
   await dashboardWipe()
   await transactionsBulk()
   await entryDateFollowsPeriod()
