@@ -24,7 +24,8 @@ import { useStore } from '../state/store'
 import { CatalogGlyph, Icon } from '../lib/icons'
 import { listNotes, readNote } from '../state/vault'
 import { extractLinks, extractTags } from '../lib/markdown'
-import { addMonths, today } from '../lib/date'
+import { ПЕРИОДЫ_ГРАФА, вПериоде, заПериодГрафа, отрезокГрафа, подписьСвоего, type ПериодГрафа } from '../lib/periodGrafa'
+import { ДиапазонДат } from '../components/DiapazonDat'
 import { money, moneyShort, plural } from '../lib/format'
 import { accountBalance, categoryTotals } from '../engine/stats'
 import { поГлавным, родитель } from '../engine/podkategorii'
@@ -95,12 +96,6 @@ const KIND_ONE: Record<Kind, string> = {
 }
 const KIND_ICON: Record<Kind, string> = { note: 'note', category: 'donut', account: 'wallet', goal: 'target', tag: 'tag' }
 
-const ПЕРИОДЫ: { k: number; t: string }[] = [
-  { k: 3, t: т('3 мес') },
-  { k: 6, t: т('Полгода') },
-  { k: 12, t: т('Год') },
-  { k: 0, t: т('Всё') },
-]
 
 /** Расстояние до камеры: чем меньше, тем сильнее перспектива. */
 const ГЛУБИНА = 900
@@ -110,8 +105,8 @@ type Режим = '3d' | 'flat'
  * Вид переживает переключение вкладок: уйти в заметку и вернуться — не повод
  * терять выбранный режим и поворот.
  */
-const запомнено: { вид: Вид; режим: Режим; вращать: boolean; период: number; yaw: number; pitch: number } = {
-  вид: 'flows', режим: '3d', вращать: true, период: 6, yaw: 0.5, pitch: -0.35,
+const запомнено: { вид: Вид; режим: Режим; вращать: boolean; период: ПериодГрафа; yaw: number; pitch: number } = {
+  вид: 'flows', режим: '3d', вращать: true, период: { k: '6m' }, yaw: 0.5, pitch: -0.35,
 }
 
 /** «Потоки» — главный вид, «Связи» — граф связей. */
@@ -119,7 +114,8 @@ type Вид = 'flows' | 'links'
 
 export default function GraphView() {
   const [вид, setВид] = useState<Вид>(запомнено.вид)
-  const [период, setПериод] = useState(запомнено.период)
+  const [период, setПериод] = useState<ПериодГрафа>(запомнено.период)
+  const [свойОткрыт, setСвойОткрыт] = useState(false)
   useEffect(() => {
     запомнено.вид = вид
     запомнено.период = период
@@ -133,10 +129,29 @@ export default function GraphView() {
     </div>
   )
   const выборПериода = (
-    <div className="seg graph-period">
-      {ПЕРИОДЫ.map((x) => (
-        <button key={x.k} type="button" className={период === x.k ? 'on' : ''} onClick={() => setПериод(x.k)}>{x.t}</button>
+    <div className="seg graph-period" style={{ position: 'relative' }}>
+      {ПЕРИОДЫ_ГРАФА.map((x) => (
+        <button
+          key={x.k}
+          type="button"
+          className={период.k === x.k ? 'on' : ''}
+          title={x.k === 'custom' ? т('Свой промежуток: первый щелчок — начало, второй — конец') : undefined}
+          onClick={() => (x.k === 'custom' ? setСвойОткрыт(true) : setПериод({ k: x.k }))}
+        >
+          {x.k === 'custom' ? подписьСвоего(период) : x.t}
+        </button>
       ))}
+      {свойОткрыт && (
+        <ДиапазонДат
+          from={период.k === 'custom' ? период.from : undefined}
+          to={период.k === 'custom' ? период.to : undefined}
+          onPick={(from, to) => {
+            setПериод({ k: 'custom', from, to })
+            setСвойОткрыт(false)
+          }}
+          onClose={() => setСвойОткрыт(false)}
+        />
+      )}
     </div>
   )
   return вид === 'flows'
@@ -267,7 +282,7 @@ function подписьУзла(n: GNode) {
   return { текст, w: текст.length * 6.3 + 14 }
 }
 
-function СхемаСвязей({ период, выборВида, выборПериода }: { период: number; выборВида: React.ReactNode; выборПериода: React.ReactNode }) {
+function СхемаСвязей({ период, выборВида, выборПериода }: { период: ПериодГрафа; выборВида: React.ReactNode; выборПериода: React.ReactNode }) {
   const app = useApp()
   const { data } = useStore()
   const animLevel = useAnimLevel()
@@ -340,8 +355,8 @@ function СхемаСвязей({ период, выборВида, выборП
       })
     }
 
-    const since = период ? addMonths(today(), -период) : ''
-    const scoped = since ? data.transactions.filter((t) => t.date >= since) : data.transactions
+    const отрезок = отрезокГрафа(период)
+    const scoped = отрезок.с || отрезок.по ? data.transactions.filter((t) => вПериоде(t.date, отрезок)) : data.transactions
     // Главная категория несёт и свои операции, и операции подкатегорий —
     // как на «Сводке» и в «Бюджете»; подкатегория — только свои.
     const прямые = [...categoryTotals(scoped, 'expense'), ...categoryTotals(scoped, 'income')]
@@ -1044,7 +1059,7 @@ function КарточкаУзла({
   n: GNode
   links: GLink[]
   byId: Map<string, GNode>
-  период: number
+  период: ПериодГрафа
   onPick: (id: string) => void
   onOpen: () => void
   onClose: () => void
@@ -1054,7 +1069,7 @@ function КарточкаУзла({
     .map((l) => ({ l, other: byId.get(l.a === n.id ? l.b : l.a)! }))
     .filter((x) => x.other)
     .sort((a, b) => (b.l.amount ?? b.l.w) - (a.l.amount ?? a.l.w))
-  const заПериод = период ? тр('за {0} мес.', период) : т('за всё время')
+  const заПериод = заПериодГрафа(период)
   return (
     <div className="graph-card" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} onWheel={(e) => e.stopPropagation()}>
       <div className="row" style={{ gap: 10, alignItems: 'center' }}>

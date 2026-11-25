@@ -22,7 +22,7 @@ import { useApp } from '../App'
 import { useStore } from '../state/store'
 import { Icon } from '../lib/icons'
 import { moneyShort } from '../lib/format'
-import { addMonths, today } from '../lib/date'
+import { ВЕСЬ_ПЕРИОД, отрезокГрафа, type ПериодГрафа } from '../lib/periodGrafa'
 import type { Money } from '../lib/types'
 import { Toggle } from './ui'
 import { useSize } from './charts'
@@ -75,8 +75,8 @@ interface Подпись {
 }
 
 interface Props {
-  период: number
-  setПериод: (k: number) => void
+  период: ПериодГрафа
+  setПериод: (п: ПериодГрафа) => void
   /** Переключатель «Потоки | Связи» и выбор периода — общие с графом связей. */
   выборВида: React.ReactNode
   выборПериода: React.ReactNode
@@ -125,7 +125,7 @@ export default function ПотокиДенег({ период, setПериод, 
   const схема = useMemo(
     () => потоки({
       transactions: data.transactions, categories: data.categories, accounts: data.accounts,
-      с: период ? addMonths(today(), -период) : '', переводы, свёрнуты,
+      ...отрезокГрафа(период), переводы, свёрнуты,
     }),
     [data.transactions, data.categories, data.accounts, период, переводы, свёрнуты],
   )
@@ -423,8 +423,8 @@ export default function ПотокиДенег({ период, setПериод, 
               ? т('Схема рисует доходы и расходы за выбранный период. Возьмите период подлиннее.')
               : т('Запишите доходы и расходы — схема покажет, откуда пришли деньги, через какие счета прошли и на что ушли.')}
           </div>
-          {естьОперации && период !== 0 && (
-            <button type="button" className="btn sm" onClick={() => setПериод(0)}>{т('Показать за всё время')}</button>
+          {естьОперации && период.k !== 'all' && (
+            <button type="button" className="btn sm" onClick={() => setПериод(ВЕСЬ_ПЕРИОД)}>{т('Показать за всё время')}</button>
           )}
         </div>
       ) : (

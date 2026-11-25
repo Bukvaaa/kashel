@@ -88,6 +88,8 @@ export interface ПараметрыПотоков {
   accounts: Account[]
   /** С какого дня, включительно; пусто — за всё время. */
   с: string
+  /** По какой день, включительно; пусто — до сегодня и дальше. */
+  по?: string
   /** Показывать переводы между своими счетами. */
   переводы: boolean
   /** Главные категории, чьи подкатегории свёрнуты. */
@@ -120,6 +122,7 @@ export function потоки(п: ПараметрыПотоков): Потоки
   const проектный = (accId: string) => !!счётПоId.get(accId)?.project
   for (const t of п.transactions) {
     if (п.с && t.date < п.с) continue
+    if (п.по && t.date > п.по) continue
     if (t.kind === 'transfer') {
       const к = t.toAccountId
       if (!п.переводы || !к || к === t.accountId) continue
