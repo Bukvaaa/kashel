@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 const КЛЮЧ_БЛИКА = 'kashel:hero-blik'
 
@@ -32,7 +32,7 @@ import {
 } from '../engine/stats'
 import { BarChart, Donut, LineChart, StackBar } from '../components/charts'
 import { useAnalytics } from '../state/analytics'
-import { Avatar, Confirm, Delta, useToast } from '../components/ui'
+import { Avatar, Confirm, Delta, useToast, useЗакрытьСнаружи } from '../components/ui'
 import { Nagrady } from '../components/Nagrady'
 import { Kredity } from '../components/Kredity'
 import { PlatezhiMesyaca } from '../components/PlatezhiMesyaca'
@@ -136,6 +136,8 @@ export default function Dashboard() {
   const [accountId, setAccountId] = useState<string>('__all__')
   const кредитъ = data.accounts.find((a) => a.id === accountId && a.type === 'credit' && a.credit)
   const [pickAccount, setPickAccount] = useState(false)
+  const выборСчётаRef = useRef<HTMLDivElement>(null)
+  useЗакрытьСнаружи(выборСчётаRef, pickAccount, () => setPickAccount(false))
   const [activeCat, setActiveCat] = useState<string | undefined>()
   // Кусок под курсором показывается в середине сразу, не дожидаясь щелчка.
   const [hoverCat, setHoverCat] = useState<string | undefined>()
@@ -630,7 +632,7 @@ export default function Dashboard() {
       <div className="hero" style={{ marginBottom: 18 }}>
         {блик && <span className="hero-blik" aria-hidden="true" onAnimationEnd={() => setБлик(false)} />}
         <div className="row">
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative' }} ref={выборСчётаRef}>
             <button className="btn ghost" onClick={() => setPickAccount((v) => !v)}>
               <Icon name="wallet" size={16} /> {headlineName} <Icon name="down" size={13} />
             </button>

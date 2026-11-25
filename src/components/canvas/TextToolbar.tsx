@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Icon } from '../../lib/icons'
+import { useЗакрытьСнаружи } from '../ui'
 import type { TextFit } from '../../lib/types'
 import type { Выравнивание, ПоВертикали } from './nodes'
 import type { ПравкаТекста } from './Pravka'
@@ -127,6 +128,8 @@ export function TextToolbar({
     return () => document.removeEventListener('selectionchange', обновить)
   }, [editorRef])
   const [режимы, setРежимы] = useState(false)
+  const режимыRef = useRef<HTMLDivElement>(null)
+  useЗакрытьСнаружи(режимыRef, режимы, () => setРежимы(false))
   const текущій = FIT_MODES.find((m) => m.id === fit) ?? FIT_MODES[0]
 
   /*
@@ -188,7 +191,7 @@ export function TextToolbar({
       ))}
 
       <span className="tool-sep" />
-      <div className="tt-fit">
+      <div className="tt-fit" ref={режимыRef}>
         <button
           className="tt-btn tt-fit-btn"
           title={текущій.about}

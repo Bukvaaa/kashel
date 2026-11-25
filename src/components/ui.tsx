@@ -903,3 +903,32 @@ export function InlineEdit({
     />
   )
 }
+
+// ------------------------------------------------------------ выпадашки
+/**
+ * Выпадающее окно закрывается щелчком мимо него и Escape — как все окна в
+ * программе. ref — обёртка, внутри которой лежат и кнопка, и само окно:
+ * щелчок по кнопке тогда не закрывает и тут же не открывает окно заново.
+ */
+export function useЗакрытьСнаружи(ref: React.RefObject<HTMLElement | null>, open: boolean, onClose: () => void) {
+  const закрыть = useRef(onClose)
+  закрыть.current = onClose
+  useEffect(() => {
+    if (!open) return
+    const вне = (e: PointerEvent) => {
+      const t = e.target as Node | null
+      if (ref.current && t && !ref.current.contains(t)) закрыть.current()
+    }
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.stopPropagation()
+      закрыть.current()
+    }
+    document.addEventListener('pointerdown', вне, true)
+    window.addEventListener('keydown', esc, true)
+    return () => {
+      document.removeEventListener('pointerdown', вне, true)
+      window.removeEventListener('keydown', esc, true)
+    }
+  }, [open, ref])
+}
