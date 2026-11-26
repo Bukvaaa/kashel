@@ -5,9 +5,9 @@
 // Закрытого ключа тут нет и быть не может — он остаётся у вас.
 
 /** Открытый ключ Ed25519 в виде SPKI, base64. */
-const ОТКРЫТЫЙ_КЛЮЧЪ = "MCowBQYDK2VwAyEAzwN2XLdbTxx2pwIvrwfTgxzx9bkbBnWu5gYjtrZejlo="
+const ОТКРЫТЫЙ_КЛЮЧЪ = "MCowBQYDK2VwAyEAMtfmRNGPi9z+kPGuQM5go8BVrKrp+rjiMSIzzRw8bGE="
 
 /** Каталог на вашем хостинге, где лежат update.json и установщики. */
-const АДРЕСЪ_ПО_УМОЛЧАНІЮ = "https://example.invalid/kashel"
+const АДРЕСЪ_ПО_УМОЛЧАНІЮ = "https://github.com/Bukvaaa/kashel/releases/latest/download"
 
 module.exports = { ОТКРЫТЫЙ_КЛЮЧЪ, АДРЕСЪ_ПО_УМОЛЧАНІЮ }

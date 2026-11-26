@@ -3561,4 +3561,9 @@ export const EN: Record<string, string> = {
   'Основная валюта': 'Main currency',
   'В ней считаются итоги, бюджет и прогноз': 'Totals, budget and forecast are counted in it',
   'по курсу сегодня {0}': 'at today’s rate {0}',
+  'Валюты: основная на выбор — рубль, евро, доллар или конвертируемая марка; валютные счета и операции в любой из них. Итоги считаются по курсу на день записи, а рядом в скобках — по сегодняшнему.': 'Currencies: choose the main one — rouble, euro, dollar or convertible mark; foreign-currency accounts and transactions in any of them. Totals use the rate on the day of the entry, with today’s rate alongside in brackets.',
+  'Курсы валют скачиваются сами раз в 12 часов, любой можно вписать вручную в «Настройках». На «Сводку» можно поставить блок с курсами.': 'Exchange rates download on their own every 12 hours, and any of them can be entered by hand in Settings. A rates block can be added to the Dashboard.',
+  'Сербский язык — кириллицей и латиницей.': 'Serbian — in Cyrillic and Latin script.',
+  'Канвас помнит последнюю доску, доски переставляются, имя меняется двойным щелчком. Граф — за любой период от дня до года.': 'The canvas remembers the last board; boards can be reordered and renamed with a double-click. The graph covers any period from a day to a year.',
+  'Календарь задач показывает важность дня полоской или цветом. У окна Кошеля свой значок на панели задач, исправлено много мелочей.': 'The task calendar shows each day’s importance as a bar or a colour. The Koshel window has its own taskbar icon, and lots of small fixes.',
 }
