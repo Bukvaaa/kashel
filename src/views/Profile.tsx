@@ -120,7 +120,7 @@ export default function Profile() {
           <div className="card-title"><Icon name="chart" size={14} /> {т(' Откуда опытъ')}</div>
           {опытъ.map((p) => (
             <div key={p.key} className="cat-row">
-              <span className="name">
+              <span className="name xp-name">
                 {p.title}
                 <span className="d faint small"> {p.hint}</span>
               </span>

@@ -122,15 +122,15 @@ export default function RecurringView() {
       )}
 
       <div className="card">
-        <Tbl>
+        <Tbl className="recurring-tbl">
           <thead>
             <tr>
               <th>{т('Название')}</th>
-              <th className="col-opt">{т('Категория')}</th>
-              <th className="col-opt">{т('Счёт')}</th>
+              <th className="col-opt rec-opt">{т('Категория')}</th>
+              <th className="col-opt rec-opt">{т('Счёт')}</th>
               <th>{т('Периодичность')}</th>
               <th className="r">{т('Сумма')}</th>
-              <th className="r col-opt">{т('В год')}</th>
+              <th className="r col-opt rec-year">{т('В год')}</th>
               <th />
             </tr>
           </thead>
@@ -147,22 +147,28 @@ export default function RecurringView() {
                         color={c?.color}
                         size="sm"
                       />
-                      <span>{r.title}</span>
-                      {r.autoPost && <span className="badge" title={т('Операции создаются автоматически')}>{т('авто')}</span>}
+                      <div style={{ minWidth: 0 }}>
+                        <div className="row" style={{ gap: 8 }}>
+                          <span>{r.title}</span>
+                          {r.autoPost && <span className="badge" title={т('Операции создаются автоматически')}>{т('авто')}</span>}
+                        </div>
+                        {/* Узкая таблица: категория и счёт — подписью под названием. */}
+                        <div className="rec-fold small faint">{c?.name ?? '—'} · {accById.get(r.accountId)?.name ?? '—'}</div>
+                      </div>
                       {/* На узкой таблице колонка периодичности прячется, а её
                           содержимое всплывает здесь. */}
                       <span className="col-fold small faint">{freqText(r)}</span>
                     </div>
                   </td>
-                  <td className="faint col-opt">{c?.name ?? '—'}</td>
-                  <td className="faint col-opt">{accById.get(r.accountId)?.name ?? '—'}</td>
+                  <td className="faint col-opt rec-opt">{c?.name ?? '—'}</td>
+                  <td className="faint col-opt rec-opt">{accById.get(r.accountId)?.name ?? '—'}</td>
                   <td className="faint">
                     {freqText(r)}
                   </td>
                   <td className={'r num ' + (r.kind === 'income' ? 'pos' : '')}>
                     {r.kind === 'income' ? '+' : '−'}{money(r.amount)}
                   </td>
-                  <td className="r num faint col-opt">{money(perYear)}</td>
+                  <td className="r num faint col-opt rec-year">{money(perYear)}</td>
                   <td className="r">
                     <div className="row" style={{ justifyContent: 'flex-end', gap: 2 }}>
                       <button

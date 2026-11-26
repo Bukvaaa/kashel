@@ -242,7 +242,7 @@ function RulesEditor() {
         {т('Если описание операции содержит указанный текст, категория проставится сама. Регистр не важен, проверка идёт по вхождению подстроки.')}</div>
 
       {data.importRules.map((r) => (
-        <div key={r.id} className="row" style={{ gap: 8, marginBottom: 6 }}>
+        <div key={r.id} className="row import-rule" style={{ gap: 8, marginBottom: 6 }}>
           <input
             type="text"
             value={r.match}
@@ -262,7 +262,7 @@ function RulesEditor() {
         </div>
       ))}
 
-      <div className="row" style={{ gap: 8, marginTop: 10 }}>
+      <div className="row import-rule" style={{ gap: 8, marginTop: 10 }}>
         <input
           type="text"
           placeholder={т('текст в описании')}

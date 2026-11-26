@@ -7,7 +7,9 @@
 .canvas-wrap {
   position: absolute;
   inset: 0;
-  overflow: hidden;
+  /* clip, а не hidden: hidden-блок браузер сам прокручивает, когда фокус
+     (Tab) уходит на кнопку карточки за краем, — и доска с панелью съезжали. */
+  overflow: clip;
   background: var(--bg);
   user-select: none;
 }
@@ -924,3 +926,12 @@
 .svw-result b { color: var(--text-strong); }
 .svw-note { margin: -2px 0 8px 114px; line-height: 1.45; }
 .svw .seg { flex-wrap: wrap; }
+
+/* «Полные» карточки 240×120 (как их ставит программа) не вмещали шапку,
+   сумму с полоской и подпись: подпись «расход · 3 месяца» уходила за низ на
+   25–30 px. Отступы чуть плотнее, а если места всё равно мало — уступает
+   середина (полоска), подпись остаётся видна. */
+.cnode-rich .cnode-head { padding: 7px 12px; }
+.cnode-rich .cnode-main { padding-top: 8px; min-height: 0; overflow: hidden; }
+.cnode-rich .cnode-main > .bar-track { margin-top: 6px !important; }
+.cnode-rich .cnode-sub { padding: 4px 14px 9px; flex: none; }

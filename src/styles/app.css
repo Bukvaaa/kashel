@@ -2633,3 +2633,32 @@ input[type='color']::-webkit-color-swatch { border: none; border-radius: 4px; }
 .btn > svg, .icon-btn > svg { transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1); }
 .btn:hover:not(:disabled) > svg, .icon-btn:hover:not(:disabled) > svg { transform: scale(1.12); }
 [data-anim='off'] .btn > svg, [data-anim='off'] .icon-btn > svg { transition: none; transform: none; }
+
+/* Регулярные: на узкой таблице категория и счёт уходят подписью под
+   название, ещё уже — пропадает «В год» (его видно в карточке выше). */
+.recurring-tbl .rec-fold { display: none; }
+@container tbl (max-width: 780px) {
+  .recurring-tbl .rec-opt { display: none; }
+  .recurring-tbl .rec-fold { display: block; margin-top: 2px; }
+}
+@container tbl (max-width: 560px) {
+  .recurring-tbl .rec-year { display: none; }
+}
+
+/* Грамота: имя, годы и плашка «пожаловано …» переносятся, а не вылезают
+   за карточку на окне 1280 со шрифтом Мака. */
+.znaki-body > .row { flex-wrap: wrap; row-gap: 4px; }
+
+/* Задачи: шапка календаря (месяц, «Полоска/Градиент», «Сегодня») на окне 1024
+   была шире карточки — теперь переносится. */
+.tasks-cal-top { flex-wrap: wrap; row-gap: 8px; }
+
+/* Профиль, «Откуда опытъ»: пояснение — второй строкой под названием, а не
+   обрезанным хвостом в той же строке. */
+.cat-row .name.xp-name { white-space: normal; overflow: visible; }
+.cat-row .name.xp-name .d { display: block; white-space: normal; margin-top: 1px; }
+
+/* Заметки и импорт на окне 1024: шапка заметки (название, «Чтение/Пополам/
+   Правка», корзина) и строка правила импорта переносятся, а не вылезают. */
+.note-head, .import-rule { flex-wrap: wrap; row-gap: 8px; }
+.import-rule > input[type='text'] { max-width: 100%; }

@@ -305,11 +305,11 @@ function Календарь({ onEdit, sel, setSel }: {
   return (
     <>
       <div className="card" style={{ marginBottom: 16 }}>
-        <div className="row" style={{ marginBottom: 12 }}>
+        <div className="row tasks-cal-top" style={{ marginBottom: 12 }}>
           <button className="icon-btn" onClick={() => setAnchor((a) => addMonths(a, -1))}>
             <Icon name="left" size={15} />
           </button>
-          <span className="strong" style={{ minWidth: 150, textAlign: 'center' }}>{monthTitle(mk)}</span>
+          <span className="strong" style={{ minWidth: 130, textAlign: 'center' }}>{monthTitle(mk)}</span>
           <button className="icon-btn" onClick={() => setAnchor((a) => addMonths(a, 1))}>
             <Icon name="right" size={15} />
           </button>

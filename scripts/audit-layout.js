@@ -37,7 +37,7 @@
       const s = getComputedStyle(el)
       // 1. Содержимое шире своего блока и обрезано (или вылезает).
       if (el.scrollWidth > el.clientWidth + 2 && el.clientWidth > 0 && !['auto', 'scroll'].includes(s.overflowX)
-        && !el.closest('svg') && !el.matches('input,textarea,select,.sr-only')) {
+        && !el.closest('svg') && !el.matches('input,textarea,select,.sr-only,.znak .seat')) {
         const clipped = s.overflowX === 'hidden' || s.overflowX === 'clip'
         const ell = s.textOverflow === 'ellipsis'
         add(ell ? 'многоточие' : clipped ? 'обрезано' : 'вылезает', el, { over: el.scrollWidth - el.clientWidth })
@@ -57,7 +57,7 @@
       }
       // 3. Блок за правым краем рабочей области.
       const r = R(el)
-      if (r.right > rootR.right + 1 && r.width < rootR.width && s.position !== 'fixed' && !el.closest('.cv-world,.canvas-world,svg')) {
+      if (r.right > rootR.right + 1 && r.width < rootR.width && s.position !== 'fixed' && !el.closest('.cv-world,.canvas-world,.canvas-layer,svg')) {
         const p = el.parentElement && R(el.parentElement)
         if (!p || p.right <= rootR.right + 1) add('за краем окна', el, { by: Math.round(r.right - rootR.right) })
       }

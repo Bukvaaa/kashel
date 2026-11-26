@@ -185,7 +185,7 @@ export default function Notes({ note }: { note?: string }) {
               style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 2, padding: '7px 9px' }}
               onClick={() => void open(n.name)}
             >
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>{n.name}</span>
+              <span title={n.name} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>{n.name}</span>
               <span className="faint" style={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
                 {noteExcerpt(n.body, 60) || т('пусто')}
               </span>
@@ -203,7 +203,7 @@ export default function Notes({ note }: { note?: string }) {
           </div>
         ) : (
           <>
-            <div className="row" style={{ padding: '10px 18px', borderBottom: '1px solid var(--border-soft)', gap: 10 }}>
+            <div className="row note-head" style={{ padding: '10px 18px', borderBottom: '1px solid var(--border-soft)', gap: 10 }}>
               <InlineEdit value={current} onChange={(v) => void rename(v)} className="strong" />
               <span className="spacer" />
               <div className="seg">

@@ -94,7 +94,7 @@ export function PlatezhiMesyaca({ style }: { style?: React.CSSProperties }) {
         <div key={x.id} className={'platezh row st-' + x.статус}>
           <span className="platezh-date small">{humanDate(x.дата)}</span>
           <Icon name={ЗНАЧОК[x.вид]} size={14} />
-          <span className="platezh-name">{x.название}</span>
+          <span className="platezh-name" title={x.название}>{x.название}</span>
           <span className={'platezh-status small st-' + x.статус}>{подпись(x)}</span>
           <span className="num platezh-sum">
             {x.внесено > 0 && x.внесено < x.сумма ? тр('{0} из {1}', money(x.внесено), money(x.сумма)) : money(x.сумма)}
