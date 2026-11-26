@@ -532,7 +532,7 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-                <div style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
+                <div className="pane-scroll" style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
                   <ViewHost tab={pane.tabs.find((t) => t.id === pane.active) ?? null} />
                 </div>
               </div>

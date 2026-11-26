@@ -285,12 +285,12 @@ export default function Budget() {
           <div className="card-title" style={{ margin: 0, flex: 1 }}><Icon name="list" size={14} /> {т(' Категории и лимиты')}</div>
           <ПериодДляВсех />
         </div>
-        <Tbl>
+        <Tbl className="budget-tbl">
           <thead>
             <tr>
               <th>{т('Категория')}</th>
               <th className="col-opt">{т('Роль')}</th>
-              <th className="r">{т('Потрачено')}</th>
+              <th className="r col-spent">{т('Потрачено')}</th>
               {isCurrent && <th className="r col-opt" title={т('К концу периода лимита, по темпу трат')}>{т('Прогноз')}</th>}
               <th className="r">{т('Лимит')}</th>
               <th className="w-impl">{т('Исполнение')}</th>
@@ -311,6 +311,7 @@ export default function Budget() {
                         onClick={() => app.openTab('transactions', 'cat:' + c.id, { title: c.name })}
                       >
                         {c.name}
+                        <span className="role-fold" style={{ color: BUCKET_COLOR[c.bucket ?? 'wants'] }}>{BUCKET_TITLE[c.bucket ?? 'wants']}<span className="spent-fold faint"> · {money(spent)}</span></span>
                       </span>
                     </div>
                   </td>
@@ -319,20 +320,22 @@ export default function Budget() {
                       {BUCKET_TITLE[c.bucket ?? 'wants']}
                     </span>
                   </td>
-                  <td className="r num">{money(spent)}</td>
+                  <td className="r num col-spent">{money(spent)}</td>
                   {isCurrent && (
                     <td className={'r num col-opt ' + (over ? 'neg' : темп ? 'budget-tempo' : '')}>{plan || spent ? money(projected) : '—'}</td>
                   )}
                   <td className="r">
-                    <MoneyInput
-                      className="num in-plan"
-                      value={plan || undefined}
-                      placeholder="—"
-                      onFocus={() => setПравимъ(c.id)}
-                      onBlur={() => setПравимъ(null)}
-                      onChange={(v, empty) => upsertCategory({ ...c, plan: empty ? undefined : v })}
-                    />
-                    {plan > 0 && <ПериодВСтроке c={c} />}
+                    <div className={'limit-box' + (plan > 0 ? ' with-period' : '')}>
+                      <MoneyInput
+                        className="num in-plan"
+                        value={plan || undefined}
+                        placeholder="—"
+                        onFocus={() => setПравимъ(c.id)}
+                        onBlur={() => setПравимъ(null)}
+                        onChange={(v, empty) => upsertCategory({ ...c, plan: empty ? undefined : v })}
+                      />
+                      {plan > 0 && <ПериодВСтроке c={c} />}
+                    </div>
                   </td>
                   <td>
                     {plan ? (
@@ -348,9 +351,10 @@ export default function Budget() {
                       <tr key={c.id + ':own'} className="budget-pod">
                         <td>
                           <span className="faint">{т('{0} — без подкатегории', c.name)}</span>
+                          <span className="role-fold spent-fold faint">{money(своиГлавной(c, и.от, и.до))}</span>
                         </td>
                         <td className="col-opt" />
-                        <td className="r num">{money(своиГлавной(c, и.от, и.до))}</td>
+                        <td className="r num col-spent">{money(своиГлавной(c, и.от, и.до))}</td>
                         {isCurrent && <td className="col-opt" />}
                         <td />
                         <td />
@@ -375,25 +379,28 @@ export default function Budget() {
                             onClick={() => app.openTab('transactions', 'cat:' + д.id, { title: д.name })}
                           >
                             {д.name}
+                            <span className="role-fold spent-fold faint">{money(дПотрачено)}</span>
                           </span>
                         </div>
                       </td>
                       <td className="col-opt" />
-                      <td className="r num">{money(дПотрачено)}</td>
+                      <td className="r num col-spent">{money(дПотрачено)}</td>
                       {isCurrent && (
                         <td className={'r num col-opt ' + (дСверх ? 'neg' : дТемп ? 'budget-tempo' : '')}>{дПлан || дПотрачено ? money(дПрогноз) : '—'}</td>
                       )}
                       <td className="r">
-                        <MoneyInput
-                          className="num in-plan"
-                          value={дПлан || undefined}
-                          placeholder="—"
-                          title={т('Свой лимит подкатегории — внутри лимита главной')}
-                          onFocus={() => setПравимъ(д.id)}
-                          onBlur={() => setПравимъ(null)}
-                          onChange={(v, empty) => upsertCategory({ ...д, plan: empty ? undefined : v })}
-                        />
-                        {дПлан > 0 && <ПериодВСтроке c={д} главная={c} />}
+                        <div className={'limit-box' + (дПлан > 0 ? ' with-period' : '')}>
+                          <MoneyInput
+                            className="num in-plan"
+                            value={дПлан || undefined}
+                            placeholder="—"
+                            title={т('Свой лимит подкатегории — внутри лимита главной')}
+                            onFocus={() => setПравимъ(д.id)}
+                            onBlur={() => setПравимъ(null)}
+                            onChange={(v, empty) => upsertCategory({ ...д, plan: empty ? undefined : v })}
+                          />
+                          {дПлан > 0 && <ПериодВСтроке c={д} главная={c} />}
+                        </div>
                       </td>
                       <td>
                         {дПлан ? (

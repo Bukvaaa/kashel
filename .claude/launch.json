@@ -33,6 +33,20 @@
         "--strictPort"
       ],
       "port": 4180
+    },
+    {
+      "name": "kashel-1025",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--outDir",
+        "_audit1025",
+        "--port",
+        "4174",
+        "--strictPort"
+      ],
+      "port": 4174
     }
   ]
 }

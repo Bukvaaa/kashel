@@ -529,7 +529,7 @@ export default function Dashboard() {
                 onClick={() => открытьКатегорию(t.categoryId)}
               >
                 <Avatar icon={c?.icon} color={c?.color} />
-                <span className="name">
+                <span className="name" title={имяСтроки(t.categoryId)}>
                   {имяСтроки(t.categoryId)}
                   {раскрываемая && <Icon name="right" size={12} style={{ marginLeft: 4, opacity: 0.6 }} />}
                 </span>

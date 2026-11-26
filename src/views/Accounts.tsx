@@ -63,18 +63,21 @@ export default function Accounts() {
       <div key={a.id} className="card tight fx-glare" style={цвѣтъПодсвѣтки(a.color)}>
         <div className="row">
           <Avatar icon={a.icon} color={a.color} size="lg" />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="strong">{a.name}</div>
+          <div className="acc-head">
+            <div className="strong" title={a.name}>{a.name}</div>
             <div className="faint small">
-              {TYPES.find((t) => t.k === a.type)?.t}
+              {a.type === 'credit' ? т('Кредит') : TYPES.find((t) => t.k === a.type)?.t}
               {проектный(a) && <> · <b>{т('проект')}</b></>}
             </div>
           </div>
-          <button className="icon-btn" onClick={() => setEdit(a)}>
+          <button className="icon-btn" title={т('Изменить')} onClick={() => setEdit(a)}>
             <Icon name="edit" size={15} />
           </button>
+          <button className="icon-btn icon-danger" title={т('Удалить')} onClick={() => setDel(a)}>
+            <Icon name="trash" size={15} />
+          </button>
         </div>
-        <div className="row" style={{ marginTop: 10 }}>
+        <div className="row" style={{ marginTop: 10, alignItems: 'flex-start' }}>
           <div>
             {/* Долг по кредиту показывается как долг, а не как беда: прежде цвет
                 брался из другого числа, чем сама цифра, и «Диван» краснел,
@@ -105,10 +108,6 @@ export default function Accounts() {
           {a.type === 'credit' && a.credit && (
             <button className="btn sm" onClick={() => app.editTransaction({ debtId: a.id })}>{т('Внести платёж')}</button>
           )}
-          <span className="spacer" />
-          <button className="btn sm danger" onClick={() => setDel(a)}>
-            <Icon name="trash" size={13} />
-          </button>
         </div>
       </div>
     )

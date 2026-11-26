@@ -96,8 +96,11 @@ export default function Goals() {
                     {g.accountId ? т(' · счёт {0}', data.accounts.find((a) => a.id === g.accountId)?.name ?? т('(счёт удалён)')) : ''}
                   </div>
                 </div>
-                <button className="icon-btn" onClick={() => setEdit(g)}>
+                <button className="icon-btn" title={т('Изменить')} onClick={() => setEdit(g)}>
                   <Icon name="edit" size={15} />
+                </button>
+                <button className="icon-btn icon-danger" title={т('Удалить')} onClick={() => удаление.цель(g.id)}>
+                  <Icon name="trash" size={15} />
                 </button>
               </div>
 
@@ -155,10 +158,6 @@ export default function Goals() {
                 )}
                 <button className="btn sm ghost" onClick={() => upsertGoal({ ...g, done: !g.done })}>
                   {g.done ? т('Вернуть в работу') : т('Отметить закрытой')}
-                </button>
-                <span className="spacer" />
-                <button className="btn sm danger" onClick={() => удаление.цель(g.id)}>
-                  <Icon name="trash" size={13} />
                 </button>
               </div>
             </div>
@@ -470,8 +469,11 @@ function КарточкаЗаработка({ g, onEdit }: { g: Goal; onEdit: ()
             {' · '}{категории.length ? т('с категорий: {0}', категории.join(', ')) : т('все доходы')}
           </div>
         </div>
-        <button className="icon-btn" onClick={onEdit}>
+        <button className="icon-btn" title={т('Изменить')} onClick={onEdit}>
           <Icon name="edit" size={15} />
+        </button>
+        <button className="icon-btn icon-danger" title={т('Удалить')} onClick={() => удаление.цель(g.id)}>
+          <Icon name="trash" size={15} />
         </button>
       </div>
 
@@ -536,10 +538,6 @@ function КарточкаЗаработка({ g, onEdit }: { g: Goal; onEdit: ()
         )}
         <button className="btn sm ghost" onClick={() => upsertGoal({ ...g, done: !g.done })}>
           {g.done ? т('Вернуть в работу') : т('Отметить закрытой')}
-        </button>
-        <span className="spacer" />
-        <button className="btn sm danger" onClick={() => удаление.цель(g.id)}>
-          <Icon name="trash" size={13} />
         </button>
       </div>
     </div>

@@ -186,6 +186,12 @@ const P: Record<string, React.ReactNode> = {
       <circle cx="19" cy="12" r="1.4" />
     </>
   ),
+  globe: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M3.5 12h17M12 3.5c2.4 2.6 3.5 5.4 3.5 8.5s-1.1 5.9-3.5 8.5c-2.4-2.6-3.5-5.4-3.5-8.5s1.1-5.9 3.5-8.5z" />
+    </>
+  ),
   sun: (
     <>
       <circle cx="12" cy="12" r="4.2" />

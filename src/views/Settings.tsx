@@ -65,8 +65,12 @@ export default function SettingsView() {
         </div>
         {/* Язык — в самой шапке и подписан на обоих языках: кто переключил
             по ошибке, должен найти, как вернуть, не зная второго языка. */}
-        <label className="row" style={{ gap: 8, marginLeft: 'auto' }}>
-          <span className="faint small">Язык · Language · Језик</span>
+        <label className="row set-lang" style={{ gap: 8, marginLeft: 'auto' }} title="Язык · Language · Језик">
+          {/* Три слова подписи ломались в три строки рядом с полем; значок
+              глобуса понятен на любом языке, а сами слова — во всплывающей
+              подсказке и для экранного диктора. */}
+          <Icon name="globe" size={16} className="faint" />
+          <span className="sr-only">Язык · Language · Језик</span>
           <select
             value={data.settings.language ?? 'ru'}
             onChange={(e) => patchSettings({ language: e.target.value as Язык })}
@@ -80,11 +84,13 @@ export default function SettingsView() {
         </label>
       </div>
 
-      <div className="grid c2">
+      {/* Карточкам настроек нужно от 440px: ряды «подпись — переключатель»
+          в 340 не влезали («Полные» уходило за край на 91px). */}
+      <div className="grid c2" style={{ '--col-min': '440px' } as React.CSSProperties}>
         {/* ------------------------------------------------ вид */}
         <div className="card">
           <div className="card-title"><Icon name="sun" size={14} /> {т(' Внешний вид')}</div>
-          <div className="grid c3" style={{ marginBottom: 16, gap: 10 }}>
+          <div className="grid c3 theme-grid" style={{ marginBottom: 16, gap: 10 }}>
             {THEMES.map((t) => (
               <button
                 key={t.id}

@@ -2930,7 +2930,7 @@ async function отменаИВерсия(root: Root): Promise<Root> {
   await open('Цели')
   const цели = (await loadVault()).goals
   if (цели.length) {
-    click(all('.view .btn.sm.danger')[0])
+    click(all('.view .card .icon-danger')[0])
     await wait(1300)
     check('цель удаляется без вопроса', (await loadVault()).goals.length === цели.length - 1)
     click(отменить('удалена'))
@@ -3775,7 +3775,7 @@ async function цельЗаработатьЭкраны() {
   check('карточка показывает заработанное, темп и «Записать доход»', !!карточка && /из 300/.test(карточка.textContent || '') && (карточка.textContent || '').includes('Ваш темп') && !!карточка.querySelector('.btn') && (карточка.textContent || '').includes('Записать доход'))
   check('«Пополнить» у заработка нет', !(карточка?.textContent || '').includes('Пополнить'))
   // убрать цель, чтобы не мешать остальным проверкам
-  click(карточка?.querySelector('.btn.danger'))
+  click(карточка?.querySelector('.icon-danger'))
   await wait(900)
 }
 
