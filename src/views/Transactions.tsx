@@ -3,7 +3,8 @@ import { ОТМЕНА_МС } from '../components/Udalenie'
 import { KategoriyaVybor } from '../components/KategoriyaVybor'
 import { семья, вСемье } from '../engine/podkategorii'
 import { DateField } from '../components/DateField'
-import { Amount, useAnimatedList, useДеньги } from '../components/anim'
+import { Amount, TxAmount, useAnimatedList, useДеньги } from '../components/anim'
+import { вОсновную, основнаяВалюта } from '../lib/valyuty'
 import { useApp, useTabId } from '../App'
 import { SchetVybor } from '../components/SchetVybor'
 import { TegiOkno } from '../components/TegiOkno'
@@ -91,6 +92,15 @@ export default function Transactions({ filter }: { filter?: string }) {
   const sum = rows.reduce((s, t) => s + (t.kind === 'income' ? долей(t) : t.kind === 'expense' ? -долей(t) : 0), 0)
   const totalExpense = rows.filter((t) => t.kind === 'expense').reduce((s, t) => s + долей(t), 0)
   const totalIncome = rows.filter((t) => t.kind === 'income').reduce((s, t) => s + долей(t), 0)
+  // Итог по курсу дня записи; есть валютные операции — рядом он же по сегодняшнему курсу.
+  const естьВалютные = rows.some((t) => t.cur && t.cur !== основнаяВалюта() && t.kind !== 'transfer')
+  const sumСегодня = естьВалютные
+    ? rows.reduce((s, t) => {
+        if (t.kind === 'transfer') return s
+        const v = t.cur && t.curAmount !== undefined && долей(t) === t.amount ? вОсновную(t.curAmount, t.cur) : долей(t)
+        return s + (t.kind === 'income' ? v : -v)
+      }, 0)
+    : sum
 
   const grouped = useMemo(() => {
     const map = new Map<string, Transaction[]>()
@@ -167,6 +177,7 @@ export default function Transactions({ filter }: { filter?: string }) {
           <h1 className="view-title">{т('Операции')}</h1>
           <div className="view-sub">
             {тр('{0} {1} · доход ', rows.length, plural(rows.length, 'запись', 'записи', 'записей'))}<b className="amount in">{money(totalIncome)}</b> {т(' · расход ')}<b className="amount out">{money(totalExpense)}</b> {т(' · итог ')}<span className={sum >= 0 ? 'pos' : 'neg'}>{money(sum, { sign: true })}</span>
+            {естьВалютные && sumСегодня !== sum && <span className="faint"> ({т('по курсу сегодня {0}', money(sumСегодня, { sign: true }))})</span>}
           </div>
         </div>
         <div className="row">
@@ -364,7 +375,7 @@ export default function Transactions({ filter }: { filter?: string }) {
                         {t.tags.length ? ' · ' + t.tags.map((x) => '#' + x).join(' ') : ''}
                       </div>
                     </div>
-                    <Amount value={долей(t)} kind={t.kind} onClick={() => app.editTransaction(t)} />
+                    <TxAmount t={t} value={долей(t) === t.amount ? undefined : долей(t)} onClick={() => app.editTransaction(t)} />
                   </div>
                 )
               })}

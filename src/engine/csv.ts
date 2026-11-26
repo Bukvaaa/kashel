@@ -114,7 +114,7 @@ export function parseDateCell(raw: string): string | null {
  * «.» и «,», что стоит последним и за которым не три цифры подряд до конца.
  */
 export function parseAmountCell(raw: string): Money {
-  let s = raw.replace(/[\s\u00A0\u202F]|₽|руб\.?|RUB/gi, '').replace(/[\u2212\u2013\u2014]/g, '-')
+  let s = raw.replace(/[\s\u00A0\u202F]|₽|руб\.?|RUB|€|EUR|\$|USD|KM|КМ|BAM/gi, '').replace(/[\u2212\u2013\u2014]/g, '-')
   const neg = /^-/.test(s) || /-$/.test(s) || /\(.*\)/.test(raw)
   s = s.replace(/[^\d.,]/g, '')
   const точка = s.lastIndexOf('.')

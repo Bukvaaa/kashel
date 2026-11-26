@@ -9,7 +9,8 @@ import { Icon } from '../lib/icons'
 import { money, pct, plural, uid } from '../lib/format'
 import { прикидкаСтавки } from '../engine/stavka'
 import { addMonths, humanDate, today } from '../lib/date'
-import { accountBalance, balanceTimeline, balances, creditRemaining, isAsset } from '../engine/stats'
+import { accountBalance, accountBalanceOwn, balanceTimeline, balances, creditRemaining, isAsset, валютный } from '../engine/stats'
+import { ВАЛЮТЫ, знакВалюты, основнаяВалюта, type КодВалюты } from '../lib/valyuty'
 import { Avatar, Confirm, ColorPicker, Field, IconPicker, Modal, MoneyInput, Toggle, useToast } from '../components/ui'
 import { Spark } from '../components/charts'
 import { проектный } from '../engine/project'
@@ -79,8 +80,13 @@ export default function Accounts() {
                 брался из другого числа, чем сама цифра, и «Диван» краснел,
                 пока на нём висел расход, хотя долг на карточке не менялся. */}
             <div className="num" style={{ fontSize: 22, fontWeight: 650, color: b < 0 && a.type !== 'credit' ? 'var(--alert)' : 'var(--text-strong)' }}>
-              {data.settings.hideBalance ? '••••' : <Money value={a.type === 'credit' ? -left : b} />}
+              {data.settings.hideBalance ? '••••' : валютный(a)
+                ? <Money value={accountBalanceOwn(a, data.transactions)} unit={знакВалюты(a.currency)} />
+                : <Money value={a.type === 'credit' ? -left : b} />}
             </div>
+            {валютный(a) && !data.settings.hideBalance && (
+              <div className="faint small num">({money(b)} {т('по курсу сегодня')})</div>
+            )}
             {a.type === 'credit' && a.credit && (
               <div className="faint small">
                 {тр('платёж {0} · {1}% годовых', money(a.credit.monthlyPayment), a.credit.ratePct)}</div>
@@ -199,6 +205,8 @@ export function AccountModal({ value, onSave, onClose }: { value: Account; onSav
           : undefined,
       // Долг из «Счетов» — сумма без списания, и человек видит это сам: сверять нечего.
       debt: type === 'debt' ? a.debt ?? { counterparty: '', direction: 'i_owe', v: 2, reviewed: true } : undefined,
+      // Кредиты и долги — в основной валюте: график платежей считается в ней.
+      currency: type === 'credit' || type === 'debt' ? undefined : a.currency,
     })
   }
 
@@ -256,9 +264,22 @@ export function AccountModal({ value, onSave, onClose }: { value: Account; onSav
             />
           </Field>
         ) : (
-          <Field label={т('Начальный остаток')} hint={т('Сколько было на счёте до начала учёта')}>
-            <MoneyInput value={a.initialBalance} onChange={(v) => patch({ initialBalance: v })} />
-          </Field>
+          <div className="grid c2">
+            <Field label={т('Валюта счёта')} hint={т('Остаток считается в ней, в итогах — по курсу')}>
+              <select
+                value={a.currency ?? основнаяВалюта()}
+                onChange={(e) => {
+                  const код = e.target.value as КодВалюты
+                  patch({ currency: код === основнаяВалюта() ? undefined : код })
+                }}
+              >
+                {ВАЛЮТЫ.map((в) => <option key={в.код} value={в.код}>{в.знак} — {в.имя}</option>)}
+              </select>
+            </Field>
+            <Field label={т('Начальный остаток, {0}', знакВалюты(a.currency))} hint={т('Сколько было на счёте до начала учёта')}>
+              <MoneyInput value={a.initialBalance} onChange={(v) => patch({ initialBalance: v })} />
+            </Field>
+          </div>
         )}
 
         {a.type === 'credit' && a.credit && (

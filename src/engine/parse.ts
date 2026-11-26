@@ -1,7 +1,7 @@
 import type { Account, Category, Money, TxKind } from '../lib/types'
 import { т } from '../i18n'
 import { addDays, iso, parseISO, relDate, today } from '../lib/date'
-import { toMinor } from '../lib/format'
+import { money, toMinor } from '../lib/format'
 
 export interface QuickDraft {
   kind: TxKind
@@ -193,7 +193,7 @@ function findByName<T extends { name: string }>(list: T[], name: string): T | un
 export function describeDraft(d: QuickDraft, categories: Category[], accounts: Account[]): string {
   const parts: string[] = []
   parts.push(d.kind === 'income' ? т('Доход') : d.kind === 'transfer' ? т('Перевод') : т('Расход'))
-  if (d.amount) parts.push((d.amount / 100).toLocaleString('ru-RU') + ' ₽')
+  if (d.amount) parts.push(money(d.amount))
   else parts.push(т('сумма не найдена'))
   if (d.matchedCategory) parts.push('→ ' + d.matchedCategory)
   if (d.matchedAccount) parts.push(т('со счёта {0}', d.matchedAccount))

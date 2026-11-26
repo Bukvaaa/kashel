@@ -1,6 +1,7 @@
 import type { Money } from './types'
 import { текущійЯзык } from '../i18n'
 import { EN } from '../i18n/en'
+import { знакВалюты } from './valyuty'
 
 export const uid = (prefix = ''): string =>
   prefix + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4)
@@ -128,7 +129,7 @@ const nf2 = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 2, maximumFr
 
 /** 12345678 → «123 457 ₽». Копейки показываем, только если они есть. */
 export function money(m: Money, opts: { sign?: boolean; cents?: boolean; unit?: string } = {}): string {
-  const unit = opts.unit ?? '₽'
+  const unit = opts.unit ?? знакВалюты(undefined)
   const abs = Math.abs(m)
   const cents = opts.cents ?? abs % 100 !== 0
   const body = cents ? nf2.format(abs / 100) : nf.format(Math.round(abs / 100))

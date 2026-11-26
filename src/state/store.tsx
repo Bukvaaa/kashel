@@ -18,6 +18,7 @@ import { отметитьУчётКредитов } from '../engine/pogashenie'
 import { occurrencesInMonth } from '../engine/forecast'
 import { т } from '../i18n'
 import { ВЕРСИЯ } from '../lib/versiya'
+import { сСуммойСчёта } from '../lib/valyuty'
 import { копииДоступны, сделатьКопию, ежедневнаяКопия } from './rezerv'
 
 /** Почему хранилище не открылось — от этого зависит текст совета на экране. */
@@ -384,7 +385,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // -------------------------------------------------------------- операции
   const addTransaction = useCallback(
     (t: Omit<Transaction, 'id' | 'createdAt'>) => {
-      const full: Transaction = { ...t, id: uid('t'), createdAt: new Date().toISOString() }
+      const full: Transaction = { ...сСуммойСчёта(t, dataRef.current.accounts), id: uid('t'), createdAt: new Date().toISOString() }
       setData((d) => ({ ...d, transactions: [...d.transactions, full] }), [monthKey(full.date)])
       return full
     },
@@ -392,9 +393,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   )
 
   const updateTransaction = useCallback(
-    (t: Transaction) => {
+    (t0: Transaction) => {
       setDataRaw((d) => {
-        const prev = d.transactions.find((x) => x.id === t.id)
+        const prev = d.transactions.find((x) => x.id === t0.id)
+        // Счёт сменили, а сумму в валюте прежнего счёта оставили — она уже ни при чём.
+        let t = t0
+        if (prev && !t.cur) {
+          const сброс: Partial<Transaction> = {}
+          if (prev.accountId !== t.accountId && t.accAmount === prev.accAmount) сброс.accAmount = undefined
+          if (prev.toAccountId !== t.toAccountId && t.toAmount === prev.toAmount) сброс.toAmount = undefined
+          if (Object.keys(сброс).length) t = сСуммойСчёта({ ...t, ...сброс }, d.accounts)
+        }
         if (prev) touchedRef.current.add(monthKey(prev.date))
         touchedRef.current.add(monthKey(t.date))
         return сОтметкой({ ...d, transactions: d.transactions.map((x) => (x.id === t.id ? t : x)) })

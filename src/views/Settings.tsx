@@ -6,7 +6,8 @@ import type { ДеньНедѣли } from '../lib/types'
 import { useApp, РАЗДЕЛЫ_ЛЕНТЫ, ЛЕНТА_ИСХОДНАЯ } from '../App'
 import { НастройкаЛенты } from '../components/NastroykaLenty'
 import { isDesktop, useStore } from '../state/store'
-import { МАСШТАБЫ, масштабИз } from '../state/defaults'
+import { МАСШТАБЫ, масштабИз, основнаяИзНастроек } from '../state/defaults'
+import { ВАЛЮТЫ, знакВалюты, type КодВалюты } from '../lib/valyuty'
 import { Icon } from '../lib/icons'
 import { money, pct, plural } from '../lib/format'
 import { bridge, type AssocStatus } from '../state/vault'
@@ -25,6 +26,7 @@ import type { AnimLevel, Density, ReadingFont, ЗадачаПоУмолчани�
 import { PRIORITIES } from '../engine/tasks'
 import { т, тр } from '../i18n'
 import { ЗвукиНастройки } from '../components/ZvukiNastroyki'
+import { КурсыНастройки } from '../components/Kursy'
 import { НастройкиЦитатКарточка } from '../components/Citaty'
 
 export default function SettingsView() {
@@ -245,11 +247,21 @@ export default function SettingsView() {
             <Field label={т('День зарплаты')}>
               <input type="number" min={1} max={31} value={p.payday} onChange={(e) => patchProfile({ payday: Number(e.target.value) })} />
             </Field>
-            <Field label={т('Символ валюты')}>
-              <input type="text" value={p.currency} onChange={(e) => patchProfile({ currency: e.target.value })} />
+            <Field label={т('Основная валюта')} hint={т('В ней считаются итоги, бюджет и прогноз')}>
+              <select
+                value={основнаяИзНастроек(data.settings)}
+                onChange={(e) => {
+                  const код = e.target.value as КодВалюты
+                  store.patchSettings({ mainCurrency: код, profile: { ...p, currency: знакВалюты(код) } })
+                }}
+              >
+                {ВАЛЮТЫ.map((в) => <option key={в.код} value={в.код}>{в.знак} — {в.имя}</option>)}
+              </select>
             </Field>
           </div>
         </div>
+
+        <КурсыНастройки />
 
         {/* ------------------------------------------------ прогноз */}
         <div className="card">

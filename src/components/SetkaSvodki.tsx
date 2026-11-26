@@ -2,7 +2,7 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '../lib/icons'
 import { uid } from '../lib/format'
 import type { CanvasNode, Settings, VaultData, БлокСводки, ЭлементСводки } from '../lib/types'
-import { БЛОКИ_ПО_УМОЛЧАНИЮ } from '../lib/types'
+import { БЛОКИ_ПО_УМОЛЧАНИЮ, ВСЕ_БЛОКИ_СВОДКИ } from '../lib/types'
 import { Виджет } from './canvas/Vidzhety'
 import { т } from '../i18n'
 
@@ -33,12 +33,12 @@ export function раскладкаСводки(s: Settings): ЭлементСв�
     return своя.filter((e) => {
       if (!e || typeof e.id !== 'string' || были.has(e.id)) return false
       были.add(e.id)
-      if (e.block) return БЛОКИ_ПО_УМОЛЧАНИЮ.includes(e.block)
+      if (e.block) return ВСЕ_БЛОКИ_СВОДКИ.includes(e.block)
       return e.widget === 'flow' || e.widget === 'earn' || e.widget === 'balance' || (e.widget === 'custom' && typeof e.lib === 'string')
     }).map((e) => ({ ...e, span: колонки(e.span) }))
   }
   const блоки = s.dashBlocks?.length
-    ? s.dashBlocks.filter((b, i, a) => БЛОКИ_ПО_УМОЛЧАНИЮ.includes(b) && a.indexOf(b) === i)
+    ? s.dashBlocks.filter((b, i, a) => ВСЕ_БЛОКИ_СВОДКИ.includes(b) && a.indexOf(b) === i)
     : БЛОКИ_ПО_УМОЛЧАНИЮ
   return блоки.map((b) => ({ id: 'b:' + b, block: b, span: КОЛОНОК }))
 }

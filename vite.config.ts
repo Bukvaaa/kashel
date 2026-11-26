@@ -18,7 +18,7 @@ const CSP = [
   "img-src 'self' data: blob:",
   "media-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co http://127.0.0.1:11434",
+  "connect-src 'self' https://*.supabase.co http://127.0.0.1:11434 https://open.er-api.com",
   "object-src 'none'",
   "frame-src 'none'",
   "base-uri 'none'",

@@ -3,6 +3,7 @@ import NumberFlow from '@number-flow/react'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { useStore } from '../state/store'
 import { money } from '../lib/format'
+import { знакВалюты, основнаяВалюта, type КодВалюты } from '../lib/valyuty'
 import type { AnimLevel, ResolvedAnim, Money as Minor, TxKind } from '../lib/types'
 
 /**
@@ -91,7 +92,7 @@ export function Money({
 }) {
   const { data } = useStore()
   const level = useAnimLevel()
-  const u = unit ?? data.settings.profile.currency ?? '₽'
+  const u = unit ?? знакВалюты(undefined)
   if (data.settings.hideBalance) return <span className={className} style={style}>••••</span>
 
   if (level === 'off' || !NUMBER_ANIMATION_SUPPORTED) {
@@ -138,15 +139,18 @@ export function Amount({
   hidden,
   className,
   onClick,
+  unit,
 }: {
   value: Minor
   kind: TxKind
   hidden?: boolean
   className?: string
   onClick?: () => void
+  /** Знак валюты, если сумма не в основной. */
+  unit?: string
 }) {
   const { data } = useStore()
-  const u = data.settings.profile.currency ?? '₽'
+  const u = unit ?? знакВалюты(undefined)
   const tone = kind === 'income' ? 'in' : kind === 'transfer' ? 'move' : 'out'
   const sign = kind === 'income' ? '+' : kind === 'transfer' ? '↔' : '−'
   return (
@@ -155,6 +159,35 @@ export function Amount({
       {hidden ?? data.settings.hideBalance ? '••••' : money(Math.abs(value), { unit: u })}
     </span>
   )
+}
+
+/**
+ * Сумма операции. Записанная в другой валюте показывается как вводили, а
+ * рядом в скобках — в основной, по курсу дня записи (она и идёт в итоги).
+ */
+export function TxAmount({
+  t,
+  value,
+  hidden,
+  onClick,
+}: {
+  t: { amount: Minor; kind: TxKind; cur?: КодВалюты; curAmount?: Minor }
+  /** Своя сумма вместо t.amount (часть по долям) — тогда без валюты. */
+  value?: Minor
+  hidden?: boolean
+  onClick?: () => void
+}) {
+  const { data } = useStore()
+  if (value === undefined && t.cur && t.curAmount !== undefined && t.cur !== основнаяВалюта()) {
+    const скрыто = hidden ?? data.settings.hideBalance
+    return (
+      <span className="tx-amount-cur" onClick={onClick}>
+        <Amount value={t.curAmount} kind={t.kind} hidden={hidden} unit={знакВалюты(t.cur)} />
+        {!скрыто && <span className="faint small num"> ({money(t.amount)})</span>}
+      </span>
+    )
+  }
+  return <Amount value={value ?? t.amount} kind={t.kind} hidden={hidden} onClick={onClick} />
 }
 
 /** Проценты и прочие «голые» числа — тем же перекатом. */

@@ -20,7 +20,7 @@ import { копииДоступны } from '../state/rezerv'
 import { ОТМЕНА_МС } from '../components/Udalenie'
 import { сеткаМесяца } from '../components/DateField'
 import { GradientText, Reveal } from '../components/effects'
-import { Amount, Money, useAnimatedList } from '../components/anim'
+import { Amount, Money, TxAmount, useAnimatedList } from '../components/anim'
 import { useApp, useTabId } from '../App'
 import { useStore } from '../state/store'
 import { Icon } from '../lib/icons'
@@ -41,7 +41,7 @@ import { личное } from '../engine/project'
 import { Ogonek } from '../components/Ogonek'
 import { KreditDashbord } from '../components/KreditDashbord'
 import { подкатегории, поГлавным, раскладкаГлавной } from '../engine/podkategorii'
-import { БЛОКИ_ПО_УМОЛЧАНИЮ, type БлокСводки, type Transaction, type СвойВиджет, type ЭлементСводки } from '../lib/types'
+import { ВСЕ_БЛОКИ_СВОДКИ, type БлокСводки, type Transaction, type СвойВиджет, type ЭлементСводки } from '../lib/types'
 import { СеткаСводки, новыйВиджетСводки, раскладкаСводки, сохранениеРаскладки } from '../components/SetkaSvodki'
 import { ContextMenu, type MenuItem } from '../components/canvas/ContextMenu'
 import { ВИДЖЕТЫ } from '../components/canvas/Vidzhety'
@@ -51,6 +51,7 @@ import { этоЗаработок } from '../engine/zarabotok'
 import { uid } from '../lib/format'
 import { т, тр } from '../i18n'
 import { ЦитатаДняСтрока } from '../components/Citaty'
+import { КурсыСводка } from '../components/Kursy'
 
 /** Названия блоков «Сводки» — видны только в настройке порядка. */
 const НАЗВАНИЯ_БЛОКОВ: Record<БлокСводки, string> = {
@@ -61,6 +62,7 @@ const НАЗВАНИЯ_БЛОКОВ: Record<БлокСводки, string> = {
   projects: т('Проекты'),
   awards: т('Отличия'),
   recent: т('Последние операции'),
+  rates: т('Курсы валют'),
 }
 
 const PERIODS: { k: PeriodKind; t: string }[] = [
@@ -85,7 +87,7 @@ export default function Dashboard() {
   const [настройка, setНастройка] = useState(false)
   const раскладка = useMemo(() => раскладкаСводки(data.settings), [data.settings])
   const видимые = раскладка.flatMap((e) => (e.block ? [e.block] : []))
-  const скрытые = БЛОКИ_ПО_УМОЛЧАНИЮ.filter((b) => !видимые.includes(b))
+  const скрытые = ВСЕ_БЛОКИ_СВОДКИ.filter((b) => !видимые.includes(b))
   const сохранитьРаскладку = (список: ЭлементСводки[]) => patchSettings(сохранениеРаскладки(список))
   const показать = (b: БлокСводки) => сохранитьРаскладку([...раскладка, { id: 'b:' + b, block: b, span: 12 }])
   const добавитьВиджет = (эл: ЭлементСводки) => {
@@ -581,6 +583,7 @@ export default function Dashboard() {
     credits: <Kredity />,
     projects: <Proekty />,
     awards: <Nagrady />,
+    rates: <КурсыСводка />,
     recent: (
       <>
       <div className="card">
@@ -612,7 +615,7 @@ export default function Dashboard() {
                   {t.tags.length ? ' · ' + t.tags.map((x) => '#' + x).join(' ') : ''}
                 </div>
               </div>
-              <Amount value={t.amount} kind={t.kind} hidden={hidden} />
+              <TxAmount t={t} hidden={hidden} />
             </div>
           )
         })}

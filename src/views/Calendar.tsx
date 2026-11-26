@@ -2,7 +2,7 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useApp } from '../App'
 import { useStore } from '../state/store'
 import { Icon } from '../lib/icons'
-import { Amount } from '../components/anim'
+import { TxAmount } from '../components/anim'
 import { Avatar } from '../components/ui'
 import { money, plural } from '../lib/format'
 import { addDays, humanDate, MONTHS_SHORT, startOfWeek, today, WEEKDAYS } from '../lib/date'
@@ -265,7 +265,7 @@ export default function CalendarView() {
                   <div className="tx-title">{t.note || c?.name || т('Операция')}</div>
                   <div className="tx-sub">{c?.name ?? т('без категории')}</div>
                 </div>
-                <Amount value={t.amount} kind={t.kind} hidden={hidden} />
+                <TxAmount t={t} hidden={hidden} />
               </div>
             )
           })}

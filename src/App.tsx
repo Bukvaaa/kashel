@@ -53,6 +53,8 @@ import { relDate, setDateFormat, today } from './lib/date'
 import { bridge } from './state/vault'
 import { МАСШТАБЫ, масштабИз } from './state/defaults'
 import type { Transaction, TxKind } from './lib/types'
+import { поставитьВалюты, пораОбновить, скачатьКурсы } from './lib/valyuty'
+import { основнаяИзНастроек } from './state/defaults'
 import { попроситьПроверку, useЕстьОбновленіе } from './components/Obnovlenie'
 import { т, тр, текущійЯзык, запомнитьЯзык } from './i18n'
 
@@ -162,6 +164,31 @@ const mkTab = (view: ViewId, arg?: string, title?: string): Tab => ({
 export default function App() {
   const store = useStore()
   const { data, ready, dirty, vaultPath, lastSaved, failure, saveError } = store
+  // Основная валюта и курсы — до отрисовки всего остального: их читают
+  // money() и остатки счетов, которым настройки не передаются.
+  const основная = основнаяИзНастроек(data.settings)
+  поставитьВалюты(основная, data.settings.rates, data.settings.ratesManual)
+
+  /*
+   * Курсы из сети: при запуске и дальше раз в несколько часов, если
+   * устарели или скачаны от другой основной валюты. Нет сети — работаем на
+   * последних сохранённых, без шума: ошибку покажет только кнопка «Обновить».
+   */
+  useEffect(() => {
+    if (!ready) return
+    let отменено = false
+    const проверить = () => {
+      if (!пораОбновить(store.data.settings.rates, основная)) return
+      скачатьКурсы(основная)
+        .then((к) => { if (!отменено) store.patchSettings({ rates: к }) })
+        .catch(() => {})
+    }
+    проверить()
+    const т6 = setInterval(проверить, 3 * 3600 * 1000)
+    return () => { отменено = true; clearInterval(т6) }
+    // store стабилен; перезапускаем только при смене основной валюты.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, основная])
 
   const [panes, setPanes] = useState<Pane[]>(() => {
     const t = mkTab('dashboard')

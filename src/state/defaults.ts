@@ -2,6 +2,7 @@ import { ICON_GROUPS } from '../lib/catalog'
 import { PALETTE } from '../lib/emoji'
 import { т } from '../i18n'
 import type { Category, Settings, ThemeId, VaultData } from '../lib/types'
+import { кодПоЗнаку, type КодВалюты } from '../lib/valyuty'
 
 export const DEFAULT_SETTINGS: VaultData['settings'] = {
   /*
@@ -182,4 +183,12 @@ export function migrateSettings(raw: Partial<Settings> | undefined): Settings {
     pomodoro: { ...DEFAULT_SETTINGS.pomodoro, ...(raw?.pomodoro || {}) },
     profile: { ...DEFAULT_SETTINGS.profile, ...(raw?.profile || {}) },
   }
+}
+
+/**
+ * Основная валюта из настроек. Старые хранилища знали только символ в
+ * профиле («₽», «$») — по нему и узнаём; не узнали — рубль.
+ */
+export function основнаяИзНастроек(s: Pick<Settings, 'mainCurrency' | 'profile'>): КодВалюты {
+  return s.mainCurrency ?? кодПоЗнаку(s.profile?.currency) ?? 'RUB'
 }

@@ -41,6 +41,18 @@ export interface Transaction {
    * 'in' — пришло извне (+сумма), 'out' — ушло наружу (−сумма).
    */
   offBook?: 'in' | 'out'
+  /*
+   * Валюта. amount — всегда в основной валюте по курсу дня записи; так
+   * итоги прошлых месяцев не меняются вместе с курсом. Остальное — рядом:
+   */
+  /** В какой валюте сумму ввели, если не в основной. */
+  cur?: КодВалюты
+  /** Сумма в той валюте, как ввели. */
+  curAmount?: Money
+  /** Сумма в валюте счёта-источника, если счёт не в основной валюте. */
+  accAmount?: Money
+  /** Для перевода: сумма в валюте счёта-получателя, если он не в основной. */
+  toAmount?: Money
   createdAt: string
 }
 
@@ -52,7 +64,9 @@ export interface Account {
   type: AccountType
   icon: string
   color: string
-  initialBalance: Money
+  initialBalance: Money // в валюте счёта
+  /** Валюта счёта. Пусто — основная. */
+  currency?: КодВалюты
   archived?: boolean
   /**
    * Счёт заведён под проект: деньги на нём лежат у вас, но не ваши.
@@ -463,10 +477,19 @@ export type ReadingFont = 'ui' | 'serif'
  * собственного выходного.
  */
 import type { СвояТема } from './svoitemy'
+import type { КодВалюты, Курсы } from './valyuty'
 
 export type ДеньНедѣли = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
 export interface Settings {
+  /** Основная валюта: в ней итоги, бюджет и прогноз. Пусто — по символу в профиле, иначе рубль. */
+  mainCurrency?: КодВалюты
+  /** Курсы из сети: сколько каждой валюты за единицу основной. */
+  rates?: Курсы
+  /** Курсы, поправленные вручную, — главнее скачанных. */
+  ratesManual?: Partial<Record<КодВалюты, number>>
+  /** Показывать курсы на «Сводке». Пусто — да, если есть другие валюты. */
+  ratesOnDashboard?: boolean
   theme: ThemeId
   animations: AnimLevel
   density: Density
@@ -834,8 +857,10 @@ export interface ЭлементСводки {
   h?: number
 }
 
-export type БлокСводки = 'payments' | 'categories' | 'dynamics' | 'credits' | 'projects' | 'awards' | 'recent'
+export type БлокСводки = 'payments' | 'categories' | 'dynamics' | 'credits' | 'projects' | 'awards' | 'recent' | 'rates'
 export const БЛОКИ_ПО_УМОЛЧАНИЮ: БлокСводки[] = ['payments', 'categories', 'dynamics', 'credits', 'projects', 'awards', 'recent']
+/** Все блоки, включая те, что по умолчанию скрыты (курсы валют). */
+export const ВСЕ_БЛОКИ_СВОДКИ: БлокСводки[] = [...БЛОКИ_ПО_УМОЛЧАНИЮ, 'rates']
 
 /** Виджеты правой панели. */
 export type ВиджетId = 'month' | 'attention' | 'upcoming' | 'goals' | 'rank' | 'forecast' | 'accounts' | 'credits'

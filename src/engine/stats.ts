@@ -1,5 +1,6 @@
 import type { Account, Category, Money, Transaction, TxKind } from '../lib/types'
 import { addDays, addMonths, diffDays, endOfMonth, endOfYear, iso, monthKey, monthRange, parseISO, startOfMonth, startOfWeek, startOfYear, today } from '../lib/date'
+import { основнаяВалюта, перевести, вОсновную } from '../lib/valyuty'
 
 export interface Period {
   from: string
@@ -246,7 +247,41 @@ export function accountDelta(t: Transaction, accountId: string): Money {
   return 0
 }
 
+/** Счёт ведётся не в основной валюте. */
+export const валютный = (acc: Account): boolean => !!acc.currency && acc.currency !== основнаяВалюта()
+
+/**
+ * Сдвиг остатка счёта в его собственной валюте. У операций, записанных с
+ * валютным счётом, сумма в его валюте лежит рядом (accAmount, toAmount); у
+ * старых её нет — тогда по сегодняшнему курсу из основной.
+ */
+export function accountDeltaOwn(t: Transaction, acc: Account): Money {
+  const d = accountDelta(t, acc.id)
+  if (!d || !валютный(acc)) return d
+  let своя: Money | undefined
+  if (t.kind === 'transfer' && t.toAccountId === acc.id && t.accountId !== acc.id) своя = t.toAmount
+  else if (t.accountId === acc.id) своя = t.accAmount
+  if (своя === undefined && t.cur === acc.currency) своя = t.curAmount
+  if (своя === undefined) return перевести(d, основнаяВалюта(), acc.currency!) ?? d
+  return Math.sign(d) * Math.abs(своя)
+}
+
+/** Остаток счёта в его собственной валюте. */
+export function accountBalanceOwn(acc: Account, txs: Transaction[], upTo?: string): Money {
+  let sum = acc.initialBalance
+  for (const t of txs) {
+    if (upTo && t.date > upTo) continue
+    sum += accountDeltaOwn(t, acc)
+  }
+  return sum
+}
+
+/**
+ * Остаток счёта в основной валюте. У валютного — его собственный остаток по
+ * сегодняшнему курсу: доллары на счёте стоят столько, сколько стоят сейчас.
+ */
 export function accountBalance(acc: Account, txs: Transaction[], upTo?: string): Money {
+  if (валютный(acc)) return вОсновную(accountBalanceOwn(acc, txs, upTo), acc.currency)
   let sum = acc.initialBalance
   for (const t of txs) {
     if (upTo && t.date > upTo) continue
@@ -423,7 +458,7 @@ export function dailySeries(txs: Transaction[], from: string, to: string, kind: 
 /** Кривая остатка активов по дням — для графика «куда идёт баланс». */
 export function balanceTimeline(accounts: Account[], txs: Transaction[], from: string, to: string): { date: string; value: Money }[] {
   const assetIds = new Set(accounts.filter((a) => isAsset(a) && !a.archived).map((a) => a.id))
-  let start = accounts.filter((a) => assetIds.has(a.id)).reduce((s, a) => s + a.initialBalance, 0)
+  let start = accounts.filter((a) => assetIds.has(a.id)).reduce((s, a) => s + вОсновную(a.initialBalance, a.currency), 0)
   const deltas = new Map<string, Money>()
   for (const t of txs) {
     let d = 0

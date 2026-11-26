@@ -19,6 +19,7 @@ import { useKategoriyaMenyu } from './KategoriyaMenyu'
 import { деревоКатегорий, родитель } from '../engine/podkategorii'
 import { useApp } from '../App'
 import { звукЗаписи } from '../lib/zvuki'
+import { ВАЛЮТЫ, безКурса, основнаяВалюта, суммыОперации, type КодВалюты } from '../lib/valyuty'
 
 const KIND_LABEL: Record<TxKind, string> = {
   expense: т('Расход'),
@@ -70,8 +71,11 @@ export function TransactionModal({
   }, [])
   const [кредитId, setКредитId] = useState(draft.debtId ?? кредиты[0]?.id ?? '')
   const кредитъ = кредиты.find((a) => a.id === кредитId)
+  // Сумма в той валюте, в которой её вводили; основная — по умолчанию.
+  const [cur, setCur] = useState<КодВалюты>(draft.cur ?? основнаяВалюта())
+  const введённая = draft.cur ? draft.curAmount : draft.amount
   const [amountStr, setAmountStr] = useState(
-    draft.amount ? formatAmountInput(String((draft.amount / 100).toFixed(2)).replace(/\.00$/, '').replace('.', ',')) : '',
+    введённая ? formatAmountInput(String((введённая / 100).toFixed(2)).replace(/\.00$/, '').replace('.', ',')) : '',
   )
   const app = useApp()
   const [accountId, setAccountId] = useState(draft.accountId ?? счётПоУмолчанию(data.accounts, data.transactions, app.entryAccount))
@@ -120,7 +124,22 @@ export function TransactionModal({
     setShowAll(true)
   }
 
-  const amount = суммаИзВыражения(amountStr || '0')
+  const введено = суммаИзВыражения(amountStr || '0')
+  // Платёж по кредиту — всегда в основной: график кредита считается в ней.
+  const валюта: КодВалюты = платёж ? основнаяВалюта() : cur
+  const счётОбъект = data.accounts.find((a) => a.id === accountId)
+  const наСчётОбъект = kind === 'transfer' ? data.accounts.find((a) => a.id === toAccountId) : undefined
+  /*
+   * Суммы в основной и в валютах счетов. У правки, где сумма, валюта и счета
+   * те же, остаются записанные: в основной — по курсу дня записи, а не
+   * сегодняшнему, иначе прошлый месяц поплыл бы от одного открытия окна.
+   */
+  const тоЖе = isEdit && (draft.cur ?? основнаяВалюта()) === валюта && введённая === введено &&
+    draft.accountId === accountId && (kind !== 'transfer' || draft.toAccountId === toAccountId)
+  const суммы = тоЖе
+    ? { amount: draft.amount ?? введено, cur: draft.cur, curAmount: draft.curAmount, accAmount: draft.accAmount, toAmount: draft.toAmount }
+    : суммыОперации(введено, валюта, счётОбъект, наСчётОбъект)
+  const amount = суммы?.amount ?? введено
   const cats = useMemo(
     () => data.categories.filter((c) => !c.archived && c.kind === (kind === 'income' ? 'income' : 'expense')),
     [data.categories, kind],
@@ -211,6 +230,10 @@ export function TransactionModal({
       toast(т('Сначала создайте счёт — в разделе «Счета»'))
       return
     }
+    if (!суммы) {
+      toast(т('Нет курса для {0} — скачайте курсы или впишите свой в «Настройках»', безКурса(валюта, счётОбъект, наСчётОбъект).join(', ')))
+      return
+    }
     if (!(amount > 0)) {
       toast(amount < 0 ? т('Сумма не может быть меньше нуля — вид операции задаёт знак сам') : т('Укажите сумму'))
       return
@@ -251,6 +274,10 @@ export function TransactionModal({
       kind,
       date,
       amount,
+      cur: суммы.cur,
+      curAmount: суммы.curAmount,
+      accAmount: суммы.accAmount,
+      toAmount: kind === 'transfer' ? суммы.toAmount : undefined,
       accountId,
       toAccountId: kind === 'transfer' ? toAccountId : undefined,
       categoryId: safeCategory,
@@ -358,7 +385,20 @@ export function TransactionModal({
             {/[+\-*/]/.test(amountStr) && (
               <div className="faint small" style={{ marginTop: 4 }}>{т('Нажмите = чтобы посчитать')}</div>
             )}
+            {валюта !== основнаяВалюта() && введено > 0 && (
+              <div className="faint small num" style={{ marginTop: 4 }}>
+                {суммы ? т('≈ {0} по курсу сегодня', money(amount)) : т('Нет курса — впишите его в «Настройках»')}</div>
+            )}
           </div>
+          {!платёж && (
+            <div style={{ width: 92 }}>
+              <Field label={т('Валюта')}>
+                <select value={cur} onChange={(e) => setCur(e.target.value as КодВалюты)} title={т('В какой валюте сумма')}>
+                  {ВАЛЮТЫ.map((в) => <option key={в.код} value={в.код}>{в.знак} {в.код}</option>)}
+                </select>
+              </Field>
+            </div>
+          )}
           <div style={{ width: 190 }}>
             <Field label={kind === 'transfer' || платёж ? т('Со счёта') : т('Счёт')}>
               <SchetVybor

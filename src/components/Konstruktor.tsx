@@ -16,6 +16,7 @@ import { useStore } from '../state/store'
 import { bridge } from '../state/vault'
 import { Icon } from '../lib/icons'
 import { uid } from '../lib/format'
+import { знакВалюты } from '../lib/valyuty'
 import { THEMES } from '../lib/themes'
 import type { ThemeId } from '../lib/types'
 import {
@@ -344,15 +345,15 @@ export function КонструкторТемы({ исходная, onClose }: { 
                 <button className="btn sm tone-out">{т('+ Расход')}</button>
                 <button className="btn sm tone-in">{т('+ Доход')}</button>
               </div>
-              <div className="hero-total num">124 500 ₽</div>
+              <div className="hero-total num">124 500 {знакВалюты(undefined)}</div>
             </div>
             <div className="card" style={{ marginBottom: 10 }}>
               <div className="card-title">{т('Этот месяц')}</div>
               <div className="kp-text">{т('Текст карточки читается так.')}</div>
               <div className="kp-muted small" style={{ color: 'var(--muted)' }}>{т('Приглушённый — подписи и пояснения.')}</div>
               <div className="row" style={{ gap: 14, margin: '8px 0' }}>
-                <span className="amount in num">+48 000 ₽</span>
-                <span className="amount out num kp-out">−12 350 ₽</span>
+                <span className="amount in num">+48 000 {знакВалюты(undefined)}</span>
+                <span className="amount out num kp-out">−12 350 {знакВалюты(undefined)}</span>
               </div>
               <div className="bar-track"><div className="bar-fill" style={{ width: '62%', background: 'var(--accent)' }} /></div>
               <div className="row" style={{ gap: 6, marginTop: 10 }}>

@@ -61,6 +61,8 @@ import { всеТеги, переименоватьТег } from '../src/engine/
 import { датыПравила, провестиАвтосписания } from '../src/engine/avtospisaniya'
 import { вычислить, суммаИзВыражения } from '../src/lib/format'
 import { перевестиДолги, остатокДолга } from '../src/engine/stats'
+import { accountBalanceOwn } from '../src/engine/stats'
+import { поставитьВалюты, курс, суммыОперации, сСуммойСчёта, кодПоЗнаку, пораОбновить } from '../src/lib/valyuty'
 import { nextDate } from '../src/engine/reminders'
 import { личное } from '../src/engine/project'
 import { очиститьИсторію } from '../src/engine/uvedomleniya'
@@ -3624,6 +3626,7 @@ async function завершить() {
   потокиПроверка()
   цитатыПроверка()
   своиВиджетыПроверка()
+  валютыПроверка()
   переводъ()
   свободныеИмена()
   console.log(`\nПровалено проверок: ${fail.length}`)
@@ -3965,4 +3968,48 @@ function цитатыПроверка() {
   }))
   const безПеревода = ЦИТАТЫ.filter((ц) => !ц.en?.текст || !ц.en?.кЧему).map((ц) => ц.id)
   check('у цитат есть английский перевод', !безПеревода.length, безПеревода.join(', '))
+}
+
+/*
+ * Валюты: курс от основной ко всем, ручной главнее скачанного, суммы
+ * операции в валютах счетов, остаток валютного счёта в его валюте и в
+ * основной по сегодняшнему курсу.
+ */
+function валютыПроверка() {
+  console.log('\n— валюты —')
+  const скачанные = { base: 'BAM' as const, rates: { EUR: 0.5, USD: 0.55, RUB: 50 }, updatedAt: new Date().toISOString() }
+  поставитьВалюты('BAM', скачанные, {})
+  check('курс от основной', курс('BAM', 'EUR') === 0.5)
+  check('курс между чужими — через основную', Math.abs((курс('EUR', 'USD') ?? 0) - 1.1) < 1e-9, String(курс('EUR', 'USD')))
+  поставитьВалюты('BAM', скачанные, { EUR: 0.6 })
+  check('ручной курс главнее скачанного', курс('BAM', 'EUR') === 0.6)
+  поставитьВалюты('EUR', скачанные, {})
+  check('курсы от другой основной не годятся', курс('EUR', 'USD') === undefined)
+  check('старые хранилища: знак → код', кодПоЗнаку('₽') === 'RUB' && кодПоЗнаку('KM') === 'BAM' && кодПоЗнаку('€') === 'EUR' && кодПоЗнаку('Ж') === undefined)
+  check('пора обновить: другая основная или старые', пораОбновить(скачанные, 'EUR') && !пораОбновить(скачанные, 'BAM') && пораОбновить({ ...скачанные, updatedAt: '2000-01-01T00:00:00Z' }, 'BAM'))
+
+  поставитьВалюты('BAM', скачанные, {})
+  const евроСчёт = { id: 'e', currency: 'EUR' as const }
+  const с = суммыОперации(1000, 'EUR', евроСчёт)
+  check('трата в евро с евро-счёта: в основной по курсу, в валюте счёта как ввели', !!с && с.amount === 2000 && с.cur === 'EUR' && с.curAmount === 1000 && с.accAmount === 1000, JSON.stringify(с))
+  const п = суммыОперации(2000, 'BAM', { id: 'k' }, евроСчёт)
+  check('перевод с марок на евро: на евро-счёт приходит по курсу', !!п && п.amount === 2000 && п.cur === undefined && п.accAmount === undefined && п.toAmount === 1000, JSON.stringify(п))
+  check('основная с обычного счёта — без валютных полей', JSON.stringify(суммыОперации(500, 'BAM', { id: 'k' })) === '{"amount":500}')
+  поставитьВалюты('BAM', { base: 'BAM', rates: {} }, {})
+  check('курса нет — не записать', суммыОперации(500, 'EUR', евроСчёт) === null)
+
+  поставитьВалюты('BAM', скачанные, {})
+  const быстрая = сСуммойСчёта({ kind: 'expense', amount: 400, accountId: 'e' }, [{ id: 'e', currency: 'EUR' }])
+  check('быстрая запись на евро-счёт досчитывает сумму счёта', быстрая.accAmount === 200, JSON.stringify(быстрая))
+
+  const счёт: Account = { id: 'e', name: 'Евро', type: 'card', icon: 'x', color: '#000', initialBalance: 10000, currency: 'EUR' }
+  const txs = [
+    { id: '1', createdAt: '', kind: 'expense', date: '2026-01-01', amount: 2000, accountId: 'e', cur: 'EUR', curAmount: 1000, accAmount: 1000 },
+    { id: '2', createdAt: '', kind: 'transfer', date: '2026-01-02', amount: 4000, accountId: 'k', toAccountId: 'e', toAmount: 2000 },
+    { id: '3', createdAt: '', kind: 'income', date: '2026-01-03', amount: 600, accountId: 'e' },
+  ] as Transaction[]
+  check('остаток в своей валюте: 100 − 10 + 20 + 3 = 113 €', accountBalanceOwn(счёт, txs) === 11300, String(accountBalanceOwn(счёт, txs)))
+  поставитьВалюты('BAM', { ...скачанные, rates: { ...скачанные.rates, EUR: 0.4 } }, {})
+  check('в основной — по сегодняшнему курсу', accountBalance(счёт, txs) === Math.round(accountBalanceOwn(счёт, txs) / 0.4) && accountBalanceOwn(счёт, txs) === 11240, String(accountBalance(счёт, txs)))
+  поставитьВалюты('RUB', undefined, {})
 }
