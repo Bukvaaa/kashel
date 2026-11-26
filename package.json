@@ -73,6 +73,7 @@
       ],
       "icon": "build/icon.png",
       "executableName": "koshel",
+      "maintainer": "Bukvaaa <325265777+Bukvaaa@users.noreply.github.com>",
       "category": "Office;Finance",
       "synopsis": "Personal finance ledger with forecast, canvas and notes",
       "description": "Koshel — personal finance ledger: accounts, categories, budget, forecast, tasks, canvas and notes. All data stays in one folder on your own disk.",
