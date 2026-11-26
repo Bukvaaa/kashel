@@ -263,6 +263,9 @@ function createWindow() {
     backgroundColor: '#1e1e1e',
     show: false,
     title: м('Кошель'),
+    // Без явной иконки на панели задач стоял бы значок самого Electron:
+    // Кошель запускается через electron.exe, а не через собранный установщик.
+    icon: path.join(__dirname, '..', 'build', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
