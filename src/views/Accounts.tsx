@@ -18,6 +18,7 @@ import type { Account, AccountType, VaultData } from '../lib/types'
 import { подсказкаОстатка } from '../engine/credit'
 import { SchetVybor } from '../components/SchetVybor'
 import { т, тр } from '../i18n'
+import { Vybor } from '../components/Vybor'
 
 const TYPES: { k: AccountType; t: string; hint: string }[] = [
   { k: 'card', t: т('Карта'), hint: т('Безналичный счёт для повседневных трат') },
@@ -265,7 +266,7 @@ export function AccountModal({ value, onSave, onClose }: { value: Account; onSav
         ) : (
           <div className="grid c2">
             <Field label={т('Валюта счёта')} hint={т('Остаток считается в ней, в итогах — по курсу')}>
-              <select
+              <Vybor
                 value={a.currency ?? основнаяВалюта()}
                 onChange={(e) => {
                   const код = e.target.value as КодВалюты
@@ -273,7 +274,7 @@ export function AccountModal({ value, onSave, onClose }: { value: Account; onSav
                 }}
               >
                 {ВАЛЮТЫ.map((в) => <option key={в.код} value={в.код}>{в.знак} — {в.имя}</option>)}
-              </select>
+              </Vybor>
             </Field>
             <Field label={т('Начальный остаток, {0}', знакВалюты(a.currency))} hint={т('Сколько было на счёте до начала учёта')}>
               <MoneyInput value={a.initialBalance} onChange={(v) => patch({ initialBalance: v })} />
@@ -349,7 +350,7 @@ export function AccountModal({ value, onSave, onClose }: { value: Account; onSav
               <input type="text" value={a.debt.counterparty} placeholder={т('Имя')} onChange={(e) => patch({ debt: { ...a.debt!, counterparty: e.target.value } })} />
             </Field>
             <Field label={т('Направление')}>
-              <select
+              <Vybor
                 value={a.debt.direction}
                 onChange={(e) => {
                   const direction = e.target.value as 'i_owe' | 'owed_to_me'
@@ -359,7 +360,7 @@ export function AccountModal({ value, onSave, onClose }: { value: Account; onSav
               >
                 <option value="i_owe">{т('Я должен')}</option>
                 <option value="owed_to_me">{т('Мне должны')}</option>
-              </select>
+              </Vybor>
             </Field>
             <Field label={т('Вернуть до')}>
               <DateField allowEmpty value={a.debt.dueDate ?? ''} onChange={(v) => patch({ debt: { ...a.debt!, dueDate: v } })} />

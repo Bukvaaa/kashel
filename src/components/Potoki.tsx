@@ -709,7 +709,7 @@ const Подсказка = React.forwardRef<HTMLDivElement, {
         <div className="flows-tip-head">
           <span className="graph-dot" style={{ background: из?.цвет }} />
           <span className="strong">{из?.имя}</span>
-          <span className="faint">→</span>
+          <Icon name="arrowRight" size={13} className="faint" />
           <span className="graph-dot" style={{ background: в?.цвет }} />
           <span className="strong">{в?.имя}</span>
         </div>

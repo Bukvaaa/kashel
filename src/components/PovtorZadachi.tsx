@@ -9,6 +9,7 @@ import { WEEKDAYS, parseISO, today, порядокъДней } from '../lib/date
 import { конецПовтора, расписаниеПовтора, type Расписание } from '../engine/povtory'
 import type { TaskRepeat, ЧастотаПовтора } from '../lib/types'
 import { т, тр } from '../i18n'
+import { Vybor } from './Vybor'
 
 export interface ЧерновикПовтора {
   freq: ЧастотаПовтора
@@ -122,7 +123,7 @@ export function ПовторЗадачи({
         <>
           <div className="row wrap" style={{ gap: 8, marginBottom: 8 }}>
             <span className="faint small">{т('Сколько')}</span>
-            <select
+            <Vybor
               className="povtor-srok"
               value={ч.срок}
               onChange={(e) => onChange({ ...ч, срок: e.target.value as ЧерновикПовтора['срок'] })}
@@ -132,7 +133,7 @@ export function ПовторЗадачи({
               <option value="months">{т('месяцев')}</option>
               <option value="date">{т('до даты')}</option>
               <option value="forever">{т('без конца')}</option>
-            </select>
+            </Vybor>
             {(ч.срок === 'weeks' || ч.срок === 'months') && (
               <input
                 type="number"

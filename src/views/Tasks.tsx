@@ -21,6 +21,7 @@ import type { Task, VaultData } from '../lib/types'
 import { ближайшиеПовторы, поУмолчанию } from '../engine/povtory'
 import { ПовторЗадачи, черновикИз, расписаниеИз, расписаниеИзменилось, type ЧерновикПовтора } from '../components/PovtorZadachi'
 import { т, тр } from '../i18n'
+import { Vybor } from '../components/Vybor'
 
 type Tab = 'list' | 'calendar' | 'matrix' | 'timer'
 
@@ -60,7 +61,7 @@ export default function Tasks() {
             {просрочено > 0 && <span className="neg"> {тр(' · {0} просрочено', просрочено)}</span>}
             {(время.неделя > 0 || время.месяц > 0) && (
               <span className="tasks-time">
-                {т(' · ⏱ на неделю {0}, на месяц {1}', форматВремени(время.неделя), форматВремени(время.месяц))}</span>
+                {' · '}<Icon name="clock" size={13} className="ico-inline" /> {т('на неделю {0}, на месяц {1}', форматВремени(время.неделя), форматВремени(время.месяц))}</span>
             )}
             {(деньги.out > 0 || деньги.in > 0) && (
               <>
@@ -163,7 +164,7 @@ function Строка({ t, onEdit, ещё }: { t: Task; onEdit: (t: Task) => voi
           {t.moneyKind === 'income' ? '+' : '−'}{money(t.amount)}
         </span>
       )}
-      {времяЗадачи(t) > 0 && <span className="task-time small">⏱ {форматВремени(времяЗадачи(t))}</span>}
+      {времяЗадачи(t) > 0 && <span className="task-time small"><Icon name="clock" size={12} className="ico-inline" /> {форматВремени(времяЗадачи(t))}</span>}
       {t.due && (
         <span className={'small ' + (late ? 'neg' : 'faint')} style={{ minWidth: 74, textAlign: 'right' }}>
           {humanDate(t.due)}
@@ -445,7 +446,7 @@ function Матрица({ onEdit }: { onEdit: (t: Task) => void }) {
                     >
                       <Icon name={isImportant(t) ? 'sparkle' : 'circle'} size={13} />
                     </button>
-                    {времяЗадачи(t) > 0 && <span className="task-time small">⏱ {форматВремени(времяЗадачи(t))}</span>}
+                    {времяЗадачи(t) > 0 && <span className="task-time small"><Icon name="clock" size={12} className="ico-inline" /> {форматВремени(времяЗадачи(t))}</span>}
                     {t.due && (
                       <span className={'small ' + (isOverdue(t) ? 'neg' : 'faint')}>{humanDate(t.due)}</span>
                     )}
@@ -664,12 +665,12 @@ export function TaskModal({ value, onClose }: { value: Task; onClose: () => void
             <DateField allowEmpty value={t.due ?? ''} onChange={(v) => patch({ due: v || undefined })} />
           </Field>
           <Field label={т('Список')}>
-            <select value={t.listId ?? ''} onChange={(e) => patch({ listId: e.target.value || undefined })}>
+            <Vybor value={t.listId ?? ''} onChange={(e) => patch({ listId: e.target.value || undefined })}>
               <option value="">{т('Входящие')}</option>
               {(data.taskLists ?? []).filter((l) => !l.archived).map((l) => (
                 <option key={l.id} value={l.id}>{l.name}</option>
               ))}
-            </select>
+            </Vybor>
           </Field>
         </div>
 
@@ -731,7 +732,7 @@ export function TaskModal({ value, onClose }: { value: Task; onClose: () => void
             </Field>
           )}
           <Field label={т('Это')}>
-            <select
+            <Vybor
               className="task-kind"
               value={t.moneyKind ?? 'expense'}
               onChange={(e) => {
@@ -744,7 +745,7 @@ export function TaskModal({ value, onClose }: { value: Task; onClose: () => void
               <option value="expense">{т('Трата')}</option>
               <option value="income">{т('Приход')}</option>
               <option value="time">{т('Потраченное время')}</option>
-            </select>
+            </Vybor>
           </Field>
           {!!t.amount && !времяНаЗадачу && (
             <>
@@ -757,12 +758,12 @@ export function TaskModal({ value, onClose }: { value: Task; onClose: () => void
                 />
               </Field>
               <Field label={т('Счёт')}>
-                <select value={t.accountId ?? ''} onChange={(e) => patch({ accountId: e.target.value || undefined })}>
+                <Vybor value={t.accountId ?? ''} onChange={(e) => patch({ accountId: e.target.value || undefined })}>
                   <option value="">{т('По умолчанию')}</option>
                   {data.accounts.filter((a) => !a.archived).map((a) => (
                     <option key={a.id} value={a.id}>{сЗначкомъ(a.icon, a.name)}</option>
                   ))}
-                </select>
+                </Vybor>
               </Field>
             </>
           )}

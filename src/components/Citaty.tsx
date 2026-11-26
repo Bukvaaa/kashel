@@ -237,7 +237,7 @@ export function ЦитатаОкно({ onClose, начальная }: { onClose:
               aria-pressed={отмечена}
               onClick={() => звезда.нажать(показ.id, onClose)}
             >
-              {отмечена ? т('★ В избранном') : т('★ В избранное')}
+              <Icon name="star" size={14} className="ico-inline" />{отмечена ? т('В избранном') : т('В избранное')}
             </button>
             <button className="btn citata-btn" onClick={ещё}>{т('Ещё цитата')}</button>
             <button className="btn ghost citata-btn-tiho" onClick={onClose}>{т('Закрыть · Esc')}</button>

@@ -14,6 +14,7 @@ import { Avatar, Confirm } from '../components/ui'
 import { useУдаление } from '../components/Udalenie'
 import type { Account, Money } from '../lib/types'
 import { т, тр } from '../i18n'
+import { цвѣтъПодсвѣтки } from '../components/effects'
 
 interface Row {
   month: number
@@ -102,7 +103,7 @@ export default function Debts() {
         const worthIt = cr.ratePct > depositRate
 
         return (
-          <div key={a.id} className="card" style={{ marginBottom: 16 }}>
+          <div key={a.id} className="card fx-glare" style={{ marginBottom: 16, ...цвѣтъПодсвѣтки(a.color) }}>
             <div className="row">
               <Avatar icon={a.icon} color={a.color} size="lg" />
               <div style={{ flex: 1 }}>
@@ -206,7 +207,7 @@ export default function Debts() {
               const due = a.debt?.dueDate
               const daysLeft = due ? -diffDays(due, today()) : null
               return (
-                <div key={a.id} className="card tight">
+                <div key={a.id} className="card tight fx-glare" style={цвѣтъПодсвѣтки(a.color)}>
                   <div className="row">
                     <Avatar icon={a.icon} color={a.color} size="lg" />
                     <div style={{ flex: 1 }}>

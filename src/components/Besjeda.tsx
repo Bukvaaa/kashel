@@ -5,6 +5,7 @@ import { НАСТАВЛЕНІЕ, наказЯзыка, полнаяВыгруз�
 import { listNotes, readNote } from '../state/vault'
 import { модели, ollamaЖива, спросить, type Модель, type Реплика } from '../state/ollama'
 import { т, тр } from '../i18n'
+import { Vybor } from './Vybor'
 
 /*
  * Разговор с нейросетью, которая работает на этой же машине.
@@ -224,11 +225,11 @@ export function Besjeda() {
         <div className="card-title" style={{ margin: 0 }}>
           <Icon name="bulb" size={14} /> {т(' Разбор нейросетью')}</div>
         <span className="spacer" />
-        <select value={модель} onChange={(e) => выбрать(e.target.value)} disabled={идётъ}>
+        <Vybor value={модель} onChange={(e) => выбрать(e.target.value)} disabled={идётъ}>
           {списокъ.map((м) => (
             <option key={м.имя} value={м.имя}>{м.имя} · {гигабайты(м.размѣръ)}</option>
           ))}
-        </select>
+        </Vybor>
       </div>
 
       <div className="faint small" style={{ marginBottom: 12, lineHeight: 1.6 }}>

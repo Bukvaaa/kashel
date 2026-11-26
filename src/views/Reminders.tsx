@@ -12,7 +12,9 @@ import { playFile, playTone, SOUNDS } from '../lib/sound'
 import { readAttachmentBase64, saveAttachment, bridge } from '../state/vault'
 import { describeReminder, dueReminders, EVENT_NAMES, EVENT_THRESHOLD, чистоеВремя } from '../engine/reminders'
 import type { Reminder, ReminderEvent, ReminderRepeat, ReminderSound } from '../lib/types'
+import { TimeField } from '../components/TimeField'
 import { т } from '../i18n'
+import { Vybor } from '../components/Vybor'
 
 const EVENTS: ReminderEvent[] = ['recurring-due', 'task-due', 'no-entries', 'limit-exceeded', 'big-expense', 'low-balance']
 
@@ -220,25 +222,25 @@ function ReminderModal({
             <DateField value={r.date ?? today()} onChange={(v) => patch({ date: v })} />
           </Field>
           <Field label={т('Повторять')}>
-            <select value={r.repeat ?? 'once'} onChange={(e) => patch({ repeat: e.target.value as ReminderRepeat })}>
+            <Vybor value={r.repeat ?? 'once'} onChange={(e) => patch({ repeat: e.target.value as ReminderRepeat })}>
               {REPEATS.map((x) => <option key={x.k} value={x.k}>{x.t}</option>)}
-            </select>
+            </Vybor>
           </Field>
         </div>
           <Field label={т('Во сколько')} hint={т('Можно несколько раз в день. Пусто — один раз, как только наступит день.')}>
             <div className="rem-times">
               {(r.times ?? []).map((t, i) => (
                 <span key={i} className="rem-time">
-                  <input
-                    type="time"
+                  <TimeField
                     value={t}
-                    aria-label={т('Время напоминания')}
-                    onChange={(e) => {
+                    ariaLabel={т('Время напоминания')}
+                    onChange={(v) => {
                       const next = [...(r.times ?? [])]
-                      next[i] = e.target.value
-                      patch({ times: next })
+                      next[i] = v
+                      // Поле отдаёт время, только когда его дописали: можно сразу
+                      // упорядочить и убрать повторы.
+                      patch({ times: чистоеВремя(next) })
                     }}
-                    onBlur={() => patch({ times: чистоеВремя(r.times) })}
                   />
                   <button
                     className="icon-btn"
@@ -268,7 +270,7 @@ function ReminderModal({
       ) : (
         <>
           <Field label={т('Событие')}>
-            <select
+            <Vybor
               value={r.event ?? 'no-entries'}
               onChange={(e) => {
                 const ev = e.target.value as ReminderEvent
@@ -276,7 +278,7 @@ function ReminderModal({
               }}
             >
               {EVENTS.map((e) => <option key={e} value={e}>{EVENT_NAMES[e]}</option>)}
-            </select>
+            </Vybor>
           </Field>
           {th && (
             <div className="grid c2">
@@ -294,14 +296,14 @@ function ReminderModal({
               </Field>
               {r.event === 'low-balance' && (
                 <Field label={т('Счёт')}>
-                  <select value={r.accountId ?? ''} onChange={(e) => patch({ accountId: e.target.value || undefined })}>
+                  <Vybor value={r.accountId ?? ''} onChange={(e) => patch({ accountId: e.target.value || undefined })}>
                     <option value="">{т('Любой счёт')}</option>
                     {data.accounts.filter((a) => !a.archived).map((a) => (
                       <option key={a.id} value={a.id}>
                         {isCatalogIcon(a.icon) ? '' : a.icon + ' '}{a.name}
                       </option>
                     ))}
-                  </select>
+                  </Vybor>
                 </Field>
               )}
               {r.event === 'limit-exceeded' && (

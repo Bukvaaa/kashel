@@ -15,6 +15,7 @@ import {
 import { Field, Tbl, useToast } from '../components/ui'
 import type { ImportRule } from '../lib/types'
 import { т, тр } from '../i18n'
+import { Vybor } from '../components/Vybor'
 
 export default function ImportView() {
   const app = useApp()
@@ -103,21 +104,21 @@ export default function ImportView() {
 
             <div className="grid c4">
               <Field label={т('Колонка с датой')}>
-                <select value={map.date} onChange={(e) => remap({ ...map, date: Number(e.target.value) })}>
+                <Vybor value={map.date} onChange={(e) => remap({ ...map, date: Number(e.target.value) })}>
                   {table.header.map((h, i) => (
                     <option key={i} value={i}>{h || т('колонка {0}', i + 1)}</option>
                   ))}
-                </select>
+                </Vybor>
               </Field>
               <Field label={т('Колонка с суммой')}>
-                <select value={map.amount} onChange={(e) => remap({ ...map, amount: Number(e.target.value) })}>
+                <Vybor value={map.amount} onChange={(e) => remap({ ...map, amount: Number(e.target.value) })}>
                   {table.header.map((h, i) => (
                     <option key={i} value={i}>{h || т('колонка {0}', i + 1)}</option>
                   ))}
-                </select>
+                </Vybor>
               </Field>
               <Field label={т('Отдельная колонка прихода')} hint={т('Если приход и расход разнесены')}>
-                <select
+                <Vybor
                   value={map.amountIn ?? ''}
                   onChange={(e) => remap({ ...map, amountIn: e.target.value === '' ? undefined : Number(e.target.value) })}
                 >
@@ -125,25 +126,25 @@ export default function ImportView() {
                   {table.header.map((h, i) => (
                     <option key={i} value={i}>{h || т('колонка {0}', i + 1)}</option>
                   ))}
-                </select>
+                </Vybor>
               </Field>
               <Field label={т('Колонка с описанием')}>
-                <select value={map.description} onChange={(e) => remap({ ...map, description: Number(e.target.value) })}>
+                <Vybor value={map.description} onChange={(e) => remap({ ...map, description: Number(e.target.value) })}>
                   {table.header.map((h, i) => (
                     <option key={i} value={i}>{h || т('колонка {0}', i + 1)}</option>
                   ))}
-                </select>
+                </Vybor>
               </Field>
             </div>
 
             <div className="row wrap" style={{ gap: 12, marginTop: 6 }}>
               <div style={{ width: 220 }}>
                 <Field label={т('Импортировать на счёт')}>
-                  <select value={accountId} onChange={(e) => setAccountId(e.target.value)}>
+                  <Vybor value={accountId} onChange={(e) => setAccountId(e.target.value)}>
                     {data.accounts.filter((a) => !a.archived).map((a) => (
                       <option key={a.id} value={a.id}>{сЗначкомъ(a.icon, a.name)}</option>
                     ))}
-                  </select>
+                  </Vybor>
                 </Field>
               </div>
               <button className={'chip' + (skipDup ? ' on' : '')} onClick={() => setSkipDup((v) => !v)}>

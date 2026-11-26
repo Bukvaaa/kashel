@@ -7,6 +7,7 @@ import { KategoriyaVybor } from './KategoriyaVybor'
 import { подкатегории, возможныеРодители, нельзяВложить } from '../engine/podkategorii'
 import type { Bucket, Category } from '../lib/types'
 import { т, тр } from '../i18n'
+import { Vybor } from './Vybor'
 
 export const BUCKETS: { k: Bucket; t: string; hint: string }[] = [
   { k: 'needs', t: т('Надо'), hint: т('обязательные траты: жильё, еда, транспорт') },
@@ -129,7 +130,7 @@ export function KategoriyaOkno({
                   onChange={(v, empty) => patch({ plan: empty ? undefined : v })}
                   style={{ flex: 1 }}
                 />
-                <select
+                <Vybor
                   className="kat-limit-period"
                   value={c.planPeriod?.kind ?? (c.parentId ? 'inherit' : 'month')}
                   title={т('За какой период лимит')}
@@ -142,7 +143,7 @@ export function KategoriyaOkno({
                 >
                   {c.parentId && <option value="inherit">{т('как у главной')}</option>}
                   {ПЕРИОДЫ_ЛИМИТА.map((x) => <option key={x.k} value={x.k}>{x.k === 'custom' && c.planPeriod?.kind === 'custom' ? заПериод(c.planPeriod) : x.t}</option>)}
-                </select>
+                </Vybor>
                 {свойПериод && (
                   <ДиапазонДат
                     from={c.planPeriod?.from}

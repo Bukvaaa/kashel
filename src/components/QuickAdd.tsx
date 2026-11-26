@@ -16,6 +16,7 @@ import { groupDigits, money, uid } from '../lib/format'
 import { Icon } from '../lib/icons'
 import type { Transaction, TxKind } from '../lib/types'
 import { т, тр } from '../i18n'
+import { цвѣтъПодсвѣтки } from './effects'
 
 /** Однострочный ввод: «кофе 250 кафе вчера #работа @наличные». */
 export function QuickAdd({
@@ -246,7 +247,8 @@ export function QuickAdd({
           {tiles.map((c) => (
             <div key={c.id} className={'qa-tile' + (categoryId === c.id ? ' on' : '')}>
               <button
-                className="qa-tile-btn"
+                className="qa-tile-btn fx-glare"
+                style={цвѣтъПодсвѣтки(c.color)}
                 title={c.name}
                 onClick={() => setPickedCat(categoryId === c.id ? undefined : c.id)}
                 onContextMenu={меню.открыть(c)}

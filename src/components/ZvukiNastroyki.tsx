@@ -10,6 +10,7 @@ import { Toggle, useToast } from './ui'
 import { ЗВУКИ, СОБЫТИЯ, звукСобытия, звукиВключены, громкость, проиграть, type ЗвукСобытие } from '../lib/zvuki'
 import { оповестить } from './Opoveshchenie'
 import { т } from '../i18n'
+import { Vybor } from './Vybor'
 
 export function ЗвукиНастройки({ только, кратко }: { только?: ЗвукСобытие[]; кратко?: boolean }) {
   const { data, patchSettings } = useStore()
@@ -66,7 +67,7 @@ export function ЗвукиНастройки({ только, кратко }: { �
           return (
             <div key={e.id} className="zvuki-row">
               <span className="zvuki-name">{e.name}</span>
-              <select
+              <Vybor
                 className={'zvuki-sel zvuki-' + e.id}
                 value={v}
                 disabled={!включены}
@@ -77,7 +78,7 @@ export function ЗвукиНастройки({ только, кратко }: { �
                     {z.id === 'file' && v === 'file' && файл ? т('Свой: {0}', файл.split('/').pop() ?? '') : z.name}
                   </option>
                 ))}
-              </select>
+              </Vybor>
               <button
                 type="button"
                 className="icon-btn"

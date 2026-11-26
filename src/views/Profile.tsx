@@ -12,6 +12,7 @@ import {
 import { FREEZES_PER_MONTH, streak } from '../engine/streak'
 import type { RankBranch } from '../lib/types'
 import { т, тр } from '../i18n'
+import { Vybor } from '../components/Vybor'
 
 const ВѢТВИ: RankBranch[] = ['civil', 'military', 'merchant']
 
@@ -59,14 +60,14 @@ export default function Profile() {
           <div className="view-sub">
             {т('Чинъ, ордена и характеристики выводятся изъ вашихъ же записей и пересчитываются всякій разъ заново. Ничего не копится отдѣльно: поправите старую запись — сойдётся и здѣсь.')}</div>
         </div>
-        <select
+        <Vybor
           value={branch}
           onChange={(e) => patchHonors({ branch: e.target.value as RankBranch })}
-          style={{ maxWidth: 190 }}
+          style={{ maxWidth: 230 }}
           title={т('По какой лѣстницѣ считать чинъ')}
         >
           {ВѢТВИ.map((b) => <option key={b} value={b}>{BRANCH_NAMES[b]}</option>)}
-        </select>
+        </Vybor>
       </div>
 
       {/* ------------------------------------------------------------ чинъ */}
@@ -147,7 +148,7 @@ export default function Profile() {
             {тр('Пропущенный день закрывается заморозкой: ихъ {0} на мѣсяцъ, осталось{1}', FREEZES_PER_MONTH, ' ')}<b>{серія.freezesLeft}</b>{т('. Третій пропускъ серію рветъ. Сдѣлано это нарочно: серія, которую рушитъ одна забытая суббота, отбиваетъ охоту продолжать вовсе.')}</div>
           <div className="row" style={{ gap: 8, marginTop: 12, alignItems: 'center' }}>
             <span className="faint small">{т('Выходной')}</span>
-            <select
+            <Vybor
               value={data.settings.restDay ?? ''}
               onChange={(e) => patchSettings({ restDay: e.target.value === '' ? undefined : Number(e.target.value) })}
               style={{ maxWidth: 170 }}
@@ -156,7 +157,7 @@ export default function Profile() {
               <option value="">{т('безъ выходного')}</option>
               {/* По порядку недели из настроек, а не всегда с воскресенья. */}
               {порядокъДней(data.settings.firstDayOfWeek ?? 1).map((i) => <option key={i} value={i}>{ДНИ[i]}</option>)}
-            </select>
+            </Vybor>
             <span className="faint small">
               {серія.todayDone ? т('сегодня записано') : т('сегодня записи ещё нѣтъ')}
             </span>

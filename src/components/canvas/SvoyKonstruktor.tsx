@@ -9,6 +9,7 @@ import type { ПоказательВиджета, СвойВиджет, VaultDat
 import { т } from '../../i18n'
 import { СвойВиджетВид, ВИДЫ_СВОЕГО, значениеСвоего } from './Svoy'
 import type { Размер } from './Vidzhety'
+import { Vybor } from '../Vybor'
 
 /*
  * Конструктор своего виджета: что считать, по каким операциям, за какой
@@ -161,20 +162,20 @@ export function КонструкторВиджета({
 
           <div className="grid c2">
             <Field label={т('Что считать')} hint={w.formula?.trim() ? т('Сейчас считает формула ниже') : undefined}>
-              <select className="svw-metric" disabled={!!w.formula?.trim()} value={w.metric} onChange={(e) => patch({ metric: e.target.value as ПоказательВиджета, ref: undefined })}>
+              <Vybor className="svw-metric" disabled={!!w.formula?.trim()} value={w.metric} onChange={(e) => patch({ metric: e.target.value as ПоказательВиджета, ref: undefined })}>
                 {ПОКАЗАТЕЛИ.map((п) => <option key={п.id} value={п.id}>{п.name}</option>)}
-              </select>
+              </Vybor>
             </Field>
             {нуженRef && (
               <Field label={w.metric === 'category' ? т('Категория или подкатегория') : w.metric === 'account' ? т('Счёт') : т('Цель')}>
-                <select className="svw-ref" value={w.ref ?? ''} onChange={(e) => patch({ ref: e.target.value || undefined })}>
+                <Vybor className="svw-ref" value={w.ref ?? ''} onChange={(e) => patch({ ref: e.target.value || undefined })}>
                   <option value="">{т('— выберите —')}</option>
                   {w.metric === 'category' && категории.map(({ cat, главная }) => (
                     <option key={cat.id} value={cat.id}>{(главная ? '   ' : '') + сЗначкомъ(cat.icon, cat.name)}</option>
                   ))}
                   {w.metric === 'account' && счета.map((a) => <option key={a.id} value={a.id}>{сЗначкомъ(a.icon, a.name)}</option>)}
                   {w.metric === 'goal' && data.goals.map((g) => <option key={g.id} value={g.id}>{сЗначкомъ(g.icon, g.name)}</option>)}
-                </select>
+                </Vybor>
               </Field>
             )}
           </div>
@@ -261,12 +262,12 @@ export function КонструкторВиджета({
                   </button>
                 )
               })}
-              <select className="svw-addcat" value="" onChange={(e) => e.target.value && patchФильтр({ categories: [...(фильтр.categories ?? []), e.target.value] })}>
+              <Vybor className="svw-addcat" value="" onChange={(e) => e.target.value && patchФильтр({ categories: [...(фильтр.categories ?? []), e.target.value] })}>
                 <option value="">{фильтр.categories?.length ? т('+ ещё') : т('все — добавить…')}</option>
                 {категории.filter(({ cat }) => !фильтр.categories?.includes(cat.id)).map(({ cat, главная }) => (
                   <option key={cat.id} value={cat.id}>{(главная ? '   ' : '') + сЗначкомъ(cat.icon, cat.name)}</option>
                 ))}
-              </select>
+              </Vybor>
             </div>
           </div>
           {теги.length > 0 && (

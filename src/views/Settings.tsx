@@ -28,6 +28,7 @@ import { т, тр, type Язык } from '../i18n'
 import { ЗвукиНастройки } from '../components/ZvukiNastroyki'
 import { КурсыНастройки } from '../components/Kursy'
 import { НастройкиЦитатКарточка } from '../components/Citaty'
+import { Vybor } from '../components/Vybor'
 
 export default function SettingsView() {
   const app = useApp()
@@ -71,7 +72,7 @@ export default function SettingsView() {
               подсказке и для экранного диктора. */}
           <Icon name="globe" size={16} className="faint" />
           <span className="sr-only">Язык · Language · Језик</span>
-          <select
+          <Vybor
             value={data.settings.language ?? 'ru'}
             onChange={(e) => patchSettings({ language: e.target.value as Язык })}
             title={т('Окно перезапустится на выбранном языке')}
@@ -80,7 +81,7 @@ export default function SettingsView() {
             <option value="en">English</option>
             <option value="sr">Српски (ћирилица)</option>
             <option value="sr-Latn">Srpski (latinica)</option>
-          </select>
+          </Vybor>
         </label>
       </div>
 
@@ -196,13 +197,13 @@ export default function SettingsView() {
               разом — сетку года, календарь задач, выбор даты и периоды. */}
           <div className="row" style={{ marginBottom: 12 }}>
             <span style={{ flex: 1 }}>{т('Неделя начинается с')}</span>
-            <select
+            <Vybor
               value={data.settings.firstDayOfWeek ?? 1}
               onChange={(e) => patchSettings({ firstDayOfWeek: Number(e.target.value) as ДеньНедѣли })}
               style={{ maxWidth: 170 }}
             >
               {порядокъДней(1).map((i) => <option key={i} value={i}>{WEEKDAYS_FULL[i]}</option>)}
-            </select>
+            </Vybor>
           </div>
 
           <div className="row" style={{ marginBottom: 6 }}>
@@ -256,7 +257,7 @@ export default function SettingsView() {
               <input type="number" min={1} max={31} value={p.payday} onChange={(e) => patchProfile({ payday: Number(e.target.value) })} />
             </Field>
             <Field label={т('Основная валюта')} hint={т('В ней считаются итоги, бюджет и прогноз')}>
-              <select
+              <Vybor
                 value={основнаяИзНастроек(data.settings)}
                 onChange={(e) => {
                   const код = e.target.value as КодВалюты
@@ -264,7 +265,7 @@ export default function SettingsView() {
                 }}
               >
                 {ВАЛЮТЫ.map((в) => <option key={в.код} value={в.код}>{в.знак} — {в.имя}</option>)}
-              </select>
+              </Vybor>
             </Field>
           </div>
         </div>
@@ -488,29 +489,29 @@ function НоваяЗадача() {
         {т('С этим новая задача открывается сразу. Поменять у конкретной задачи можно как обычно.')}</div>
       <div className="grid c2">
         <Field label={т('Это')}>
-          <select className="td-kind" value={у.kind ?? 'expense'} onChange={(e) => задать({ kind: e.target.value as ЗадачаПоУмолчанию['kind'] })}>
+          <Vybor className="td-kind" value={у.kind ?? 'expense'} onChange={(e) => задать({ kind: e.target.value as ЗадачаПоУмолчанию['kind'] })}>
             <option value="expense">{т('Трата')}</option>
             <option value="income">{т('Приход')}</option>
             <option value="time">{т('Потраченное время')}</option>
-          </select>
+          </Vybor>
         </Field>
         <Field label={т('Важность')}>
-          <select className="td-prio" value={у.priority ?? 0} onChange={(e) => задать({ priority: Number(e.target.value) as 0 | 1 | 2 | 3 })}>
+          <Vybor className="td-prio" value={у.priority ?? 0} onChange={(e) => задать({ priority: Number(e.target.value) as 0 | 1 | 2 | 3 })}>
             {PRIORITIES.map((p) => <option key={p.p} value={p.p}>{p.t}</option>)}
-          </select>
+          </Vybor>
         </Field>
         <Field label={т('Список')}>
-          <select className="td-list" value={у.listId ?? ''} onChange={(e) => задать({ listId: e.target.value || undefined })}>
+          <Vybor className="td-list" value={у.listId ?? ''} onChange={(e) => задать({ listId: e.target.value || undefined })}>
             <option value="">{т('Входящие')}</option>
             {списки.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-          </select>
+          </Vybor>
         </Field>
         <Field label={т('Срок')}>
-          <select className="td-due" value={у.due ?? 'none'} onChange={(e) => задать({ due: e.target.value as ЗадачаПоУмолчанию['due'] })}>
+          <Vybor className="td-due" value={у.due ?? 'none'} onChange={(e) => задать({ due: e.target.value as ЗадачаПоУмолчанию['due'] })}>
             <option value="none">{т('Без срока')}</option>
             <option value="today">{т('Сегодня')}</option>
             <option value="tomorrow">{т('Завтра')}</option>
-          </select>
+          </Vybor>
         </Field>
       </div>
     </div>

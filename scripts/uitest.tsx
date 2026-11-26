@@ -3339,7 +3339,7 @@ async function связиИВремя() {
     с?.onChange?.({ target: { value: значение, selectionStart: значение.length } })
   }
   ввести(окно()?.querySelector('input[placeholder="Найти юриста"]'), 'Раскадровка')
-  ввести(окно()?.querySelector('.task-kind'), 'time')
+  ввести(окно()?.querySelector('.task-kind select'), 'time')
   await wait(150)
   check('«Потраченное время» — вместо суммы часы и минуты', !!окно()?.querySelector('.task-hours') && !окно()?.querySelector('.modal-body input.in-money, .money-input'))
   ввести(окно()?.querySelector('.task-hours'), '2')
@@ -3353,7 +3353,7 @@ async function связиИВремя() {
   check('задача сохранена как время: 2 ч 30 мин, без денег', задача?.moneyKind === 'time' && задача?.minutes === 150 && !задача?.amount, JSON.stringify(задача))
   click(all('.view button').find((б) => (б.textContent || '').trim() === 'Список'))
   await wait(250)
-  check('в списке видно ⏱ 2 ч 30 мин', text().includes('⏱ 2 ч 30 мин'))
+  check('в списке видно 2 ч 30 мин со значком часов', all('.view .task-time').some((e) => !!e.querySelector('svg') && (e.textContent || '').includes('2 ч 30 мин')))
 }
 
 /*
@@ -3515,7 +3515,7 @@ async function правки106() {
   check('«Как в оформлении» возвращает цвет темы', корень.style.getPropertyValue('--accent') !== '#ff7a00' && (await loadVault()).settings.accentMode === 'theme')
 
   // ------------------------------------------------ задача по умолчанию
-  const td = (сел: string) => document.querySelector('.view .nastroyki-zadachi ' + сел) as HTMLSelectElement | null
+  const td = (сел: string) => (document.querySelector('.view .nastroyki-zadachi ' + сел + ' select') ?? document.querySelector('.view .nastroyki-zadachi ' + сел)) as HTMLSelectElement | null
   check('в настройках есть раздел «Новая задача»', !!td('.td-kind'))
   ввести(td('.td-kind'), 'time')
   await wait(100)
@@ -3532,7 +3532,7 @@ async function правки106() {
   await wait(300)
   const окно = () => document.querySelector('.modal') as HTMLElement | null
   check('новая задача открывается с заготовкой: время и средняя важность',
-    (окно()?.querySelector('.task-kind') as HTMLSelectElement)?.value === 'time' && !!окно()?.querySelector('.chip.prio.p2.on'))
+    (окно()?.querySelector('.task-kind select') as HTMLSelectElement)?.value === 'time' && !!окно()?.querySelector('.chip.prio.p2.on'))
 
   // ------------------------------------------------ регулярная задача
   ввести(окно()?.querySelector('input[type="text"]'), 'Пробежка')
@@ -3701,7 +3701,7 @@ async function правки107() {
   await open('Настройки')
   const карточкаЗвуков = () => document.querySelector('.view .nastroyki-zvuki')
   check('в настройках есть «Звуки и уведомления»', !!карточкаЗвуков() && all('.view .nastroyki-zvuki .zvuki-row').length >= 7)
-  ввести(карточкаЗвуков()?.querySelector('.zvuki-task'), 'gong')
+  ввести(карточкаЗвуков()?.querySelector('.zvuki-task select'), 'gong')
   await wait(1300)
   check('звук события выбирается', (await loadVault()).settings.sounds?.events?.task === 'gong')
   click(byText('.view .nastroyki-zvuki .btn', 'Показать пример'))
@@ -3854,7 +3854,7 @@ async function периодЛимитаЭкраны() {
   check('у строки с лимитом под суммой — выбор периода, без новой колонки',
     !!строка?.querySelector('td.r .limit-period') && all('.view thead th').length <= 6)
   check('колонка прогноза — «Прогноз» к концу периода', all('.view thead th').some((th) => (th.textContent || '').trim() === 'Прогноз'))
-  ввести(строка?.querySelector('.limit-period'), 'quarter')
+  ввести(строка?.querySelector('.limit-period select'), 'quarter')
   await wait(1300)
   let v = await loadVault()
   const кат = v.categories.find((c) => c.planPeriod?.kind === 'quarter')

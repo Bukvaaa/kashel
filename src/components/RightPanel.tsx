@@ -147,7 +147,7 @@ export function RightPanel({ open }: { open: boolean }) {
               {topAdvice.map((a) => (
                 <div
                   key={a.id}
-                  className={'advice-card ' + a.severity}
+                  className={'advice-card fx-glare ' + a.severity}
                   style={{ padding: '10px 12px', cursor: 'pointer' }}
                   onClick={() => app.openTab('advice')}
                 >

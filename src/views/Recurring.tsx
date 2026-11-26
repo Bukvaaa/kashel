@@ -14,6 +14,7 @@ import { findRepeats } from '../engine/repeats'
 import { Avatar, ColorPicker, Confirm, Field, Modal, MoneyInput, Tbl, Toggle, useToast } from '../components/ui'
 import type { Freq, Recurring, TxKind } from '../lib/types'
 import { т, тр } from '../i18n'
+import { Vybor } from '../components/Vybor'
 
 /** Один формат на колонку и на свёрнутую строку под названием. */
 const freqText = (r: Recurring): string =>
@@ -286,11 +287,11 @@ function RecurringModal({ value, onSave, onClose }: { value: Recurring; onSave: 
           <MoneyInput value={r.amount || undefined} onChange={(v) => patch({ amount: v })} />
         </Field>
         <Field label={т('Счёт')}>
-          <select value={r.accountId} onChange={(e) => patch({ accountId: e.target.value })}>
+          <Vybor value={r.accountId} onChange={(e) => patch({ accountId: e.target.value })}>
             {data.accounts.filter((a) => !a.archived).map((a) => (
               <option key={a.id} value={a.id}>{сЗначкомъ(a.icon, a.name)}</option>
             ))}
-          </select>
+          </Vybor>
         </Field>
         {r.kind !== 'transfer' && (
           <Field label={т('Категория')}>
@@ -307,20 +308,20 @@ function RecurringModal({ value, onSave, onClose }: { value: Recurring; onSave: 
         )}
         {r.kind === 'transfer' && (
           <Field label={т('На счёт')}>
-            <select value={r.toAccountId ?? ''} onChange={(e) => patch({ toAccountId: e.target.value || undefined })}>
+            <Vybor value={r.toAccountId ?? ''} onChange={(e) => patch({ toAccountId: e.target.value || undefined })}>
               <option value="">—</option>
               {data.accounts.filter((a) => !a.archived && a.id !== r.accountId).map((a) => (
                 <option key={a.id} value={a.id}>{сЗначкомъ(a.icon, a.name)}</option>
               ))}
-            </select>
+            </Vybor>
           </Field>
         )}
         <Field label={т('Периодичность')}>
-          <select value={r.freq} onChange={(e) => patch({ freq: e.target.value as Freq })}>
+          <Vybor value={r.freq} onChange={(e) => patch({ freq: e.target.value as Freq })}>
             {FREQ.map((f) => (
               <option key={f.k} value={f.k}>{f.t}</option>
             ))}
-          </select>
+          </Vybor>
         </Field>
         <Field label={т('Каждые N периодов')}>
           <input type="number" min={1} value={r.interval} onChange={(e) => patch({ interval: Math.max(1, Number(e.target.value)) })} />

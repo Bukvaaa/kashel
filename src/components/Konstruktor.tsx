@@ -27,6 +27,7 @@ import {
 import { Confirm, Modal, useToast } from './ui'
 import { ThemeThumb } from './ThemePicker'
 import { т, тр } from '../i18n'
+import { Vybor } from './Vybor'
 
 /** Переменные встроенной темы — читаются с невидимого элемента с её атрибутом. */
 export function токеныОсновы(base: ThemeId): Record<string, string> {
@@ -258,9 +259,9 @@ export function КонструкторТемы({ исходная, onClose }: { 
             </label>
             <label className="field">
               <span className="field-label">{т('Основа')}</span>
-              <select value={base} onChange={(e) => смѣнитьОснову(e.target.value as ThemeId)}>
+              <Vybor value={base} onChange={(e) => смѣнитьОснову(e.target.value as ThemeId)}>
                 {THEMES.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
+              </Vybor>
             </label>
           </div>
 
@@ -359,7 +360,7 @@ export function КонструкторТемы({ исходная, onClose }: { 
               <div className="row" style={{ gap: 6, marginTop: 10 }}>
                 <span className="chip on">{т('Месяц')}</span>
                 <span className="chip">{т('Год')}</span>
-                <span className="kp-ink small" style={{ color: 'var(--accent-ink, var(--accent))', marginLeft: 'auto' }}>{т('Все операции →')}</span>
+                <span className="kp-ink small" style={{ color: 'var(--accent-ink, var(--accent))', marginLeft: 'auto' }}>{т('Все операции')} <Icon name="arrowRight" size={12} className="ico-inline" /></span>
               </div>
             </div>
             <div className="row" style={{ gap: 8 }}>

@@ -20,6 +20,7 @@ import { деревоКатегорий, родитель } from '../engine/podk
 import { useApp } from '../App'
 import { звукЗаписи } from '../lib/zvuki'
 import { ВАЛЮТЫ, безКурса, основнаяВалюта, суммыОперации, type КодВалюты } from '../lib/valyuty'
+import { Vybor } from './Vybor'
 
 const KIND_LABEL: Record<TxKind, string> = {
   expense: т('Расход'),
@@ -393,9 +394,9 @@ export function TransactionModal({
           {!платёж && (
             <div style={{ width: 92 }}>
               <Field label={т('Валюта')}>
-                <select value={cur} onChange={(e) => setCur(e.target.value as КодВалюты)} title={т('В какой валюте сумма')}>
+                <Vybor value={cur} onChange={(e) => setCur(e.target.value as КодВалюты)} title={т('В какой валюте сумма')}>
                   {ВАЛЮТЫ.map((в) => <option key={в.код} value={в.код}>{в.знак} {в.код}</option>)}
-                </select>
+                </Vybor>
               </Field>
             </div>
           )}

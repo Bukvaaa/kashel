@@ -16,6 +16,7 @@ import type { Bucket, Category, Money, ПериодЛимита } from '../lib/t
 import { личное } from '../engine/project'
 import { т, тр } from '../i18n'
 import { родитель, подкатегории } from '../engine/podkategorii'
+import { Vybor } from '../components/Vybor'
 
 const BUCKET_TITLE: Record<Bucket, string> = { needs: т('Надо'), wants: т('Хочу'), savings: т('В будущее') }
 const BUCKET_COLOR: Record<Bucket, string> = { needs: '#4aa3e8', wants: '#e8833a', savings: '#4cc46a' }
@@ -446,7 +447,7 @@ function ПериодВСтроке({ c, главная }: { c: Category; гла
   }
   return (
     <div className="limit-period-wrap">
-      <select
+      <Vybor
         className="limit-period"
         value={значение}
         title={т('За какой период лимит')}
@@ -456,7 +457,7 @@ function ПериодВСтроке({ c, главная }: { c: Category; гла
         {ПЕРИОДЫ_ЛИМИТА.map((x) => (
           <option key={x.k} value={x.k}>{x.k === 'custom' && п.kind === 'custom' && c.planPeriod ? подписьПериода(п) : x.кратко}</option>
         ))}
-      </select>
+      </Vybor>
       {п.kind === 'custom' && c.planPeriod && (
         <button type="button" className="icon-btn limit-period-dates" title={т('Изменить даты')} onClick={() => setСвой(true)}>
           <Icon name="calendar" size={12} />
@@ -502,7 +503,7 @@ function ПериодДляВсех() {
   }
   return (
     <div className="row limit-period-all" style={{ gap: 6, position: 'relative' }}>
-      <select
+      <Vybor
         className="limit-period"
         value={вид}
         title={т('Период для всех лимитов')}
@@ -513,7 +514,7 @@ function ПериодДляВсех() {
         }}
       >
         {ПЕРИОДЫ_ЛИМИТА.map((x) => <option key={x.k} value={x.k}>{x.k === 'custom' && даты ? подписьПериода({ kind: 'custom', ...даты }) : x.t}</option>)}
-      </select>
+      </Vybor>
       <button
         type="button"
         className="btn sm"

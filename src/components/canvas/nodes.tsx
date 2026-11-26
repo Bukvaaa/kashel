@@ -590,7 +590,7 @@ export function NodeBody({
             <span className={t.moneyKind === 'income' ? 'pos' : ''}>
               {' · '}{t.moneyKind === 'income' ? '+' : '−'}{money(t.amount)}</span>
           )}
-          {времяЗадачи(t) > 0 && <span>{' · ⏱ '}{форматВремени(времяЗадачи(t))}</span>}
+          {времяЗадачи(t) > 0 && <span>{' · '}<Icon name="clock" size={11} className="ico-inline" /> {форматВремени(времяЗадачи(t))}</span>}
         </div>
         {t.note && <div className="cnode-task-note faint small">{t.note}</div>}
       </div>

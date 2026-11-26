@@ -12,6 +12,7 @@ import { LineChart } from '../components/charts'
 import { Avatar, Field, Modal, MoneyInput, Tbl, useToast } from '../components/ui'
 import type { Scenario, ScenarioEvent } from '../lib/types'
 import { т, тр } from '../i18n'
+import { Vybor } from '../components/Vybor'
 
 const BASE: Scenario = {
   id: '__base__', name: т('Как есть'), incomeFactor: 1, adjusts: [], events: [], extraSavingsMonthly: 0,
@@ -126,7 +127,7 @@ export default function Forecast() {
         <div className="row wrap">
           {/* Тот же выбор счёта, что на дашборде. Список, а не переключатель:
               счетов может быть много, и в строку они не влезут. */}
-          <select
+          <Vybor
             value={accountId}
             onChange={(e) => setAccountId(e.target.value)}
             style={{ maxWidth: 210 }}
@@ -141,7 +142,7 @@ export default function Forecast() {
                 {isCatalogIcon(a.icon) ? '' : a.icon + ' '}{a.name}
               </option>
             ))}
-          </select>
+          </Vybor>
           <div className="seg">
             {[6, 12, 24].map((h) => (
               <button key={h} className={horizon === h ? 'on' : ''} onClick={() => setHorizon(h)}>

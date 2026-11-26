@@ -909,7 +909,8 @@
 .svw-label { flex: none; width: 104px; font-size: 12.5px; color: var(--muted); }
 .svw-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
 .svw-chips .chip { cursor: pointer; }
-.svw-chips select { width: auto; max-width: 220px; padding: 3px 8px; }
+.svw-chips .vybor { width: auto; max-width: 220px; }
+.svw-chips .vybor-btn { padding: 3px 8px; }
 .svw-colors { display: flex; flex-wrap: wrap; gap: 5px; padding-top: 2px; }
 .svw-color { width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent; padding: 0; cursor: pointer; }
 .svw-color.on { border-color: var(--text-strong); box-shadow: 0 0 0 2px var(--panel) inset; }

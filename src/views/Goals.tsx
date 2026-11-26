@@ -17,6 +17,7 @@ import { СТАТЬЯ_ЦЕЛЕЙ, планъПополненія } from '../engi
 import { прогрессЗаработка, этоЗаработок } from '../engine/zarabotok'
 import { KategoriyaVybor } from '../components/KategoriyaVybor'
 import { т, тр } from '../i18n'
+import { Vybor } from '../components/Vybor'
 
 export default function Goals() {
   // Суммы на экране — с учётом «Скрывать баланс».
@@ -249,9 +250,9 @@ function ПополнениеЦели({ goal, suggested, onClose }: { goal: Goal
           <div className="faint small" style={{ margin: '10px 0', lineHeight: 1.55 }}>
             {тр('Эта цель — счёт «{0}»: сколько на нём лежит, столько и накоплено. Поэтому деньги переводятся на него с другого счёта, иначе цифры цели и счёта разойдутся.', счётЦели?.name)}</div>
           <Field label={т('Откуда')}>
-            <select value={счётъ} onChange={(e) => setСчётъ(e.target.value)} disabled={!источники.length}>
+            <Vybor value={счётъ} onChange={(e) => setСчётъ(e.target.value)} disabled={!источники.length}>
               {источники.map((a) => <option key={a.id} value={a.id}>{сЗначкомъ(a.icon, a.name)}</option>)}
-            </select>
+            </Vybor>
           </Field>
           {!источники.length && <div className="neg small">{т('Другого счёта нет — переводить неоткуда.')}</div>}
         </>
@@ -263,9 +264,9 @@ function ПополнениеЦели({ goal, suggested, onClose }: { goal: Goal
           {списать && (
             <>
               <Field label={т('С какого счёта')}>
-                <select value={счётъ} onChange={(e) => setСчётъ(e.target.value)} disabled={!источники.length}>
+                <Vybor value={счётъ} onChange={(e) => setСчётъ(e.target.value)} disabled={!источники.length}>
                   {источники.map((a) => <option key={a.id} value={a.id}>{сЗначкомъ(a.icon, a.name)}</option>)}
-                </select>
+                </Vybor>
               </Field>
               <div className="faint small" style={{ marginTop: 6, lineHeight: 1.55 }}>
                 {тр('Со счёта спишется {0} расходом по статье «Цели» — в тратах месяца это будет видно.', money(сумма || 0))}</div>
@@ -336,12 +337,12 @@ export function GoalModal({ value, onSave, onClose }: { value: Goal; onSave: (g:
         </div>
 
         <Field label={т('Счёт-копилка')} hint={т('Если выбран, накопленное считается по остатку счёта')}>
-          <select value={g.accountId ?? ''} onChange={(e) => patch({ accountId: e.target.value || undefined })}>
+          <Vybor value={g.accountId ?? ''} onChange={(e) => patch({ accountId: e.target.value || undefined })}>
             <option value="">{т('Без счёта — веду вручную')}</option>
             {data.accounts.filter((a) => !a.archived).map((a) => (
               <option key={a.id} value={a.id}>{сЗначкомъ(a.icon, a.name)}</option>
             ))}
-          </select>
+          </Vybor>
         </Field>
 
         {!g.accountId && (

@@ -544,7 +544,7 @@ input[type='text'], input[type='number'], input[type='date'], input[type='search
   width: 100%;
 }
 input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-input[type='range'] { width: 100%; accent-color: var(--accent); }
+/* Ползунок, флажок, число и цвет — в стиле Кошеля, а не системы (см. конец файла). */
 
 /*
  * Поле даты со своим календариком (components/DateField).
@@ -2316,7 +2316,7 @@ input.invalid { border-color: var(--alert) !important; }
 .zvuki-list.off { opacity: 0.5; }
 .zvuki-row { display: flex; align-items: center; gap: 8px; }
 .zvuki-name { flex: 1; min-width: 0; }
-.zvuki-sel { width: 165px; flex-shrink: 0; }
+.zvuki-sel { width: 205px; flex-shrink: 0; }
 
 /* ------------------------------------------------------------ оповещения */
 .opov-stack {
@@ -2397,14 +2397,15 @@ input.invalid { border-color: var(--alert) !important; }
 /* ------------------------------------------------------------ период лимита */
 .budget-limits-head { gap: 10px; margin-bottom: 10px; align-items: center; }
 .limit-period-wrap { position: relative; display: flex; justify-content: flex-end; align-items: center; gap: 2px; margin-top: 3px; }
-select.limit-period {
-  width: auto; min-width: 0; height: 22px; padding: 0 18px 0 6px;
+.vybor.limit-period { width: auto; }
+.vybor.limit-period .vybor-btn {
+  height: 22px; padding: 0 5px 0 7px; gap: 3px;
   font-size: 11px; line-height: 20px; color: var(--muted);
-  background-color: transparent; border: 1px solid var(--border-soft); border-radius: 999px;
-  background-position: right 5px center; background-size: 9px;
+  background: transparent; border: 1px solid var(--border-soft); border-radius: 999px;
 }
-select.limit-period:hover, select.limit-period:focus { color: var(--text); border-color: var(--border); }
-.limit-period-all select.limit-period { height: 28px; font-size: 12px; padding-left: 10px; }
+.vybor.limit-period .vybor-arrow { width: 11px; height: 11px; }
+.vybor.limit-period .vybor-btn:hover, .vybor.limit-period .vybor-btn[aria-expanded='true'] { color: var(--text); border-color: var(--border); }
+.limit-period-all .vybor.limit-period .vybor-btn { height: 28px; font-size: 12px; padding-left: 10px; }
 .limit-period-dates { width: 22px; height: 22px; }
 /* Сумма и период лимита — одно поле «26 000 | в мес.»: период стоял под
    суммой отдельной строкой, и строки с лимитом были 68px, а без — 44px. */
@@ -2417,7 +2418,7 @@ select.limit-period:hover, select.limit-period:focus { color: var(--text); borde
 .limit-box:focus-within { border-color: var(--accent); }
 .tbl .limit-box .in-plan { border: 0; background: transparent; height: 28px; flex: 1; min-width: 0; width: auto; padding: 0 8px; }
 .limit-box .limit-period-wrap { margin: 0 3px 0 0; flex: none; }
-.limit-box select.limit-period { border-color: transparent; background-color: var(--panel-2); }
+.limit-box .vybor.limit-period .vybor-btn { border-color: transparent; background: var(--panel-2); }
 td.r:has(> .limit-box) { width: 1%; }
 .budget-tbl .role-fold { display: none; }
 .budget-tbl th.w-impl { width: 150px; }
@@ -2439,7 +2440,7 @@ td.r:has(> .limit-box) { width: 1%; }
 /* Напоминание: несколько времён в день. */
 .rem-times { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .rem-time { display: inline-flex; align-items: center; gap: 2px; }
-.rem-time input[type='time'] { width: auto; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px; color: var(--text); outline: none; }
+.rem-time .timefield { width: 112px; }
 
 /* Блик по шапке сводки раз в день: одна светлая полоса слева направо.
    Своя обёртка с overflow: hidden — у самой шапки обрезать нельзя, из неё
@@ -2535,3 +2536,100 @@ td.r:has(> .limit-box) { width: 1%; }
   .budget-tbl th.w-impl { width: 100px; }
   .budget-tbl td:last-child .small { white-space: normal; }
 }
+
+/* ------------------------------------------------------------ свой список
+   Кнопка выглядит как поле ввода, список — как календарик DateField: та же
+   панель, рамка, тень и радиус. Стрелка — значок автора «down». */
+:where(.vybor) { position: relative; display: inline-flex; width: 100%; min-width: 0; vertical-align: middle; }
+.vybor-btn {
+  display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 6px 8px 6px 10px; color: var(--text); text-align: left; cursor: pointer;
+  transition: var(--tr); font: inherit;
+}
+.vybor-btn:hover { border-color: color-mix(in srgb, var(--text) 25%, var(--border)); }
+.vybor-btn:focus-visible, .vybor-btn[aria-expanded='true'] { outline: none; border-color: var(--accent); }
+.vybor-btn:disabled { opacity: 0.55; cursor: default; }
+.vybor-val { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vybor-arrow { flex: none; color: var(--muted); transition: transform 160ms ease, color 120ms; }
+.vybor-btn:hover .vybor-arrow { color: var(--text); }
+.vybor-btn[aria-expanded='true'] .vybor-arrow { transform: rotate(180deg); color: var(--accent-ink); }
+.vybor-native { position: absolute; inset: 0; opacity: 0; pointer-events: none; width: 100%; height: 100%; }
+.vybor-pop {
+  position: fixed; z-index: 1000; overflow-y: auto; padding: 4px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow); backdrop-filter: var(--panel-blur);
+  font-size: 14px;
+}
+.vybor-opt {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 30px;
+  padding: 5px 10px; border: 0; border-radius: var(--radius-sm); background: transparent;
+  color: var(--text); text-align: left; cursor: pointer; white-space: nowrap; font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.vybor-opt-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.vybor-opt.active, .vybor-opt:hover { background: var(--hover); }
+.vybor-opt.sel { color: var(--text-strong); font-weight: 600; }
+.vybor-opt.sel svg { color: var(--accent-ink); flex: none; }
+.vybor-opt.near { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.vybor-opt.disabled { opacity: 0.45; cursor: default; }
+/* Список времени: узкий, 24 часа с шагом 15 минут. */
+.timepop { width: 140px; max-height: 244px; }
+.timepop .vybor-opt { justify-content: center; }
+.timefield input[type='text'] { font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------ флажок, ползунок, число, цвет
+   Системные рисует ОС: на Маке — синие, на Windows — свои, и в прогнозе
+   почти чёрная дорожка ползунка была самым тёмным пятном страницы. */
+
+/* Флажок: квадрат с радиусом автора, отметка — его значок check. */
+input[type='checkbox'] {
+  appearance: none; -webkit-appearance: none;
+  width: 16px; height: 16px; margin: 0; flex: none; vertical-align: -3px;
+  border: 1.5px solid var(--border); border-radius: 5px; background: var(--bg) center / 12px no-repeat;
+  cursor: pointer; transition: background-color 120ms, border-color 120ms, transform 120ms;
+}
+input[type='checkbox']:hover { border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); }
+input[type='checkbox']:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent); outline-offset: 1px; }
+input[type='checkbox']:checked {
+  background-color: var(--accent); border-color: var(--accent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310231a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 5 5 9-11'/%3E%3C/svg%3E");
+}
+input[type='checkbox']:active { transform: scale(0.92); }
+input[type='checkbox']:disabled { opacity: 0.5; cursor: default; }
+
+/* Ползунок: тонкая дорожка цвета рамки, круглая ручка акцентом. */
+input[type='range'] {
+  appearance: none; -webkit-appearance: none;
+  width: 100%; height: 20px; margin: 0; padding: 0; background: transparent; cursor: pointer;
+}
+input[type='range']::-webkit-slider-runnable-track { height: 4px; border-radius: 999px; background: var(--border); }
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6px; border-radius: 50%;
+  background: var(--accent); border: 2px solid var(--panel); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 60%, var(--border));
+  transition: transform 120ms;
+}
+input[type='range']:hover::-webkit-slider-thumb { transform: scale(1.15); }
+input[type='range']:focus-visible { outline: none; }
+input[type='range']:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent); }
+
+/* Число: без системных стрелочек — ↑ ↓ на клавиатуре работают как раньше. */
+input[type='number'] { -moz-appearance: textfield; font-variant-numeric: tabular-nums; }
+input[type='number']::-webkit-inner-spin-button, input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Цвет: просто образец со скруглением, без системной рамки. */
+input[type='color'] { cursor: pointer; }
+input[type='color']::-webkit-color-swatch-wrapper { padding: 2px; }
+input[type='color']::-webkit-color-swatch { border: none; border-radius: 4px; }
+
+.ico-inline { display: inline-block; vertical-align: -0.15em; flex: none; }
+
+/* Подсветка карточек совета — цветом их важности. */
+.advice-card.fx-glare.alert { --glare: var(--alert); }
+.advice-card.fx-glare.warn { --glare: var(--warn); }
+.advice-card.fx-glare.info { --glare: var(--info); }
+.advice-card.fx-glare.good { --glare: var(--good); }
+/* Значок в кнопке чуть сдвигается навстречу курсору. */
+.btn > svg, .icon-btn > svg { transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.btn:hover:not(:disabled) > svg, .icon-btn:hover:not(:disabled) > svg { transform: scale(1.12); }
+[data-anim='off'] .btn > svg, [data-anim='off'] .icon-btn > svg { transition: none; transform: none; }
