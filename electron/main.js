@@ -533,7 +533,7 @@ ipcMain.handle('shell:prefs', (_e, prefs) => {
     if (cfg.dateFormat !== prefs.dateFormat) writeConfig({ ...cfg, dateFormat: prefs.dateFormat })
   }
   // Меню и трей Electron перестраивает на лету — в отличие от языка Chromium.
-  if (prefs?.language === 'ru' || prefs?.language === 'en') {
+  if (языкъ.ЯЗЫКИ.includes(prefs?.language)) {
     const cfg = readConfig()
     if (cfg.language !== prefs.language) writeConfig({ ...cfg, language: prefs.language })
     if (языкъ.текущій() !== prefs.language) {

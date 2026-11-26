@@ -7,10 +7,10 @@ import { bridge } from '../state/vault'
 import {
   ЕЖЕДНЕВНЫХ_ХРАНИТЬ, копииДоступны, подписьВида, сделатьКопию, списокКопий, type Копия,
 } from '../state/rezerv'
-import { текущійЯзык, т } from '../i18n'
+import { т, локаль } from '../i18n'
 
 const когдаСтрокой = (d: Date) =>
-  d.toLocaleString(текущійЯзык() === 'en' ? 'en-GB' : 'ru-RU', {
+  d.toLocaleString(локаль(), {
     day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
   })
 

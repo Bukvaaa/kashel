@@ -24,7 +24,7 @@ import { RezervnyeKopii } from '../components/RezervnyeKopii'
 import { ОПрограмме } from '../components/ChtoNovogo'
 import type { AnimLevel, Density, ReadingFont, ЗадачаПоУмолчанию } from '../lib/types'
 import { PRIORITIES } from '../engine/tasks'
-import { т, тр } from '../i18n'
+import { т, тр, type Язык } from '../i18n'
 import { ЗвукиНастройки } from '../components/ZvukiNastroyki'
 import { КурсыНастройки } from '../components/Kursy'
 import { НастройкиЦитатКарточка } from '../components/Citaty'
@@ -66,14 +66,16 @@ export default function SettingsView() {
         {/* Язык — в самой шапке и подписан на обоих языках: кто переключил
             по ошибке, должен найти, как вернуть, не зная второго языка. */}
         <label className="row" style={{ gap: 8, marginLeft: 'auto' }}>
-          <span className="faint small">Язык · Language</span>
+          <span className="faint small">Язык · Language · Језик</span>
           <select
             value={data.settings.language ?? 'ru'}
-            onChange={(e) => patchSettings({ language: e.target.value as 'ru' | 'en' })}
+            onChange={(e) => patchSettings({ language: e.target.value as Язык })}
             title={т('Окно перезапустится на выбранном языке')}
           >
             <option value="ru">Русский</option>
             <option value="en">English</option>
+            <option value="sr">Српски (ћирилица)</option>
+            <option value="sr-Latn">Srpski (latinica)</option>
           </select>
         </label>
       </div>

@@ -93,6 +93,8 @@ function чужія(): string[] {
   const обходъ = document.createTreeWalker(document.body, 4 /* NodeFilter.SHOW_TEXT */)
   for (let n = обходъ.nextNode(); n; n = обходъ.nextNode()) {
     const т = n.textContent || ''
+    // сербская кириллица (пункты выбора языка) — не русский текст
+    if (/[јћђљњџЈЋЂЉЊЏ]/.test(т)) continue
     for (const м of т.matchAll(СЛОВО)) {
       const w = м[0].toLowerCase()
       if (изДанныхъ.has(w) || итогъ.has(w)) continue

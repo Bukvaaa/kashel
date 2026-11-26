@@ -1,5 +1,5 @@
 /*
- * Перевод интерфейса: русский и английский.
+ * Перевод интерфейса: русский, английский и сербский (кириллица и латиница).
  *
  * Устроен как gettext: ключ — сама русская строка. Код поэтому читается
  * по-русски как и прежде, а пропущенный перевод показывает русский текст, а
@@ -16,8 +16,12 @@
  */
 import React from 'react'
 import { EN } from './en'
+import { SR } from './sr'
+import { латиница } from './latinica'
 
-export type Язык = 'ru' | 'en'
+export type Язык = 'ru' | 'en' | 'sr' | 'sr-Latn'
+export const ЯЗЫКИ: Язык[] = ['ru', 'en', 'sr', 'sr-Latn']
+export const этоЯзык = (x: unknown): x is Язык => typeof x === 'string' && (ЯЗЫКИ as string[]).includes(x)
 
 let язык: Язык = 'ru'
 
@@ -30,7 +34,8 @@ export const текущійЯзык = (): Язык => язык
 /** Язык из зеркала — для запуска, пока хранилище ещё не прочитано. */
 export function языкИзъЗеркала(): Язык {
   try {
-    return localStorage.getItem(ГДѢ_ЯЗЫКЪ) === 'en' ? 'en' : 'ru'
+    const я = localStorage.getItem(ГДѢ_ЯЗЫКЪ)
+    return этоЯзык(я) ? я : 'ru'
   } catch {
     return 'ru'
   }
@@ -40,7 +45,36 @@ export function запомнитьЯзык(я: Язык) {
   try { localStorage.setItem(ГДѢ_ЯЗЫКЪ, я) } catch { /* приватное окно */ }
 }
 
-const перевести = (ключъ: string): string => (язык === 'en' ? EN[ключъ] || ключъ : ключъ)
+/** Сербский — кириллицей или латиницей: словарь один, латиница выводится. */
+export const сербскій = (): boolean => язык === 'sr' || язык === 'sr-Latn'
+const латинскіе = new Map<string, string>()
+/** Сербская строка в нужной азбуке. */
+export function поСербски(кириллицей: string): string {
+  if (язык !== 'sr-Latn') return кириллицей
+  let л = латинскіе.get(кириллицей)
+  if (л === undefined) { л = латиница(кириллицей); латинскіе.set(кириллицей, л) }
+  return л
+}
+
+/** Перевод ключа на текущий язык или undefined, если перевода нет (для склонений). */
+export function переводъ(ключъ: string): string | undefined {
+  if (язык === 'en') return EN[ключъ]
+  if (сербскій()) return SR[ключъ] ? поСербски(SR[ключъ]) : undefined
+  return undefined
+}
+
+const перевести = (ключъ: string): string => (язык === 'ru' ? ключъ : переводъ(ключъ) || ключъ)
+
+/** Выбор по языку окна: русское, английское, сербское (латиница — сама). */
+export function поЯзыку<T extends string | string[]>(ru: T, en: T, sr: T): T {
+  if (язык === 'en') return en
+  if (!сербскій()) return ru
+  return (Array.isArray(sr) ? sr.map(поСербски) : поСербски(sr as string)) as T
+}
+
+/** Локаль для Intl: числа, даты. */
+export const локаль = (): string =>
+  язык === 'en' ? 'en-GB' : язык === 'sr' ? 'sr-Cyrl-RS' : язык === 'sr-Latn' ? 'sr-Latn-RS' : 'ru-RU'
 
 /** Подстановка {0}, {1}… — в переводе порядок мест может быть любым. */
 function подставить(шаблонъ: string, args: unknown[]): string {

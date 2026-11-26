@@ -1,5 +1,6 @@
 import type { Money } from './types'
-import { текущійЯзык } from '../i18n'
+import { СР_МИЛЛИОН, СР_ТЫСЯЧА } from '../i18n/srDaty'
+import { текущійЯзык, сербскій, переводъ, поЯзыку } from '../i18n'
 import { EN } from '../i18n/en'
 import { знакВалюты } from './valyuty'
 
@@ -143,8 +144,8 @@ export function moneyShort(m: Money): string {
   const sign = m < 0 ? '−' : ''
   const en = текущійЯзык() === 'en'
   const дробь = (x: number, знаковъ: number) => (en ? x.toFixed(знаковъ) : x.toFixed(знаковъ).replace('.', ','))
-  if (v >= 1_000_000) return `${sign}${дробь(v / 1_000_000, v >= 10_000_000 ? 0 : 1)}${en ? 'M' : ' млн'}`
-  if (v >= 1_000) return `${sign}${дробь(v / 1_000, v >= 100_000 ? 0 : 1)}${en ? 'k' : ' тыс'}`
+  if (v >= 1_000_000) return `${sign}${дробь(v / 1_000_000, v >= 10_000_000 ? 0 : 1)}${en ? 'M' : поЯзыку(' млн', 'M', СР_МИЛЛИОН)}`
+  if (v >= 1_000) return `${sign}${дробь(v / 1_000, v >= 100_000 ? 0 : 1)}${en ? 'k' : поЯзыку(' тыс', 'k', СР_ТЫСЯЧА)}`
   return `${sign}${Math.round(v)}`
 }
 
@@ -165,6 +166,11 @@ export function plural(n: number, one: string, few: string, many: string): strin
       const [o, m] = перевод.split('|')
       return Math.abs(n) === 1 ? o : m
     }
+  }
+  // По-сербски форм три, как по-русски, и правило то же: 1 дан, 2 дана, 5 дана.
+  if (сербскій()) {
+    const перевод = переводъ(`${one}|${few}|${many}`)
+    if (перевод) [one, few, many] = перевод.split('|') as [string, string, string]
   }
   const abs = Math.abs(n) % 100
   const last = abs % 10

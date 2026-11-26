@@ -11,7 +11,7 @@ import { основнаяИзНастроек } from '../state/defaults'
 import { ВАЛЮТЫ, курсОтОсновной, подписьКурса, скачатьКурсы, знакВалюты, type КодВалюты } from '../lib/valyuty'
 import { Icon } from '../lib/icons'
 import { Field, Toggle, useToast } from './ui'
-import { т } from '../i18n'
+import { т, локаль } from '../i18n'
 import { раскладкаСводки, сохранениеРаскладки } from './SetkaSvodki'
 
 /** Когда обновлены курсы — по-человечески. */
@@ -19,7 +19,7 @@ function когдаОбновлены(iso: string | undefined): string {
   if (!iso) return т('ещё не скачаны')
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return т('ещё не скачаны')
-  return d.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleString(локаль(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
 function useОбновитьКурсы() {

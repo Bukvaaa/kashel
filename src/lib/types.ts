@@ -478,6 +478,7 @@ export type ReadingFont = 'ui' | 'serif'
  */
 import type { СвояТема } from './svoitemy'
 import type { КодВалюты, Курсы } from './valyuty'
+import type { Язык } from '../i18n'
 
 export type ДеньНедѣли = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
@@ -576,7 +577,7 @@ export interface Settings {
    */
   dateFormat?: 'ru' | 'us'
   /** Язык интерфейса. Смена перезапускает окно — см. i18n/index.ts. */
-  language?: 'ru' | 'en'
+  language?: Язык
   /**
    * Прятать окно в трей вместо закрытия. Программа при этом
    * продолжает работать: напоминания и помидор остаются живыми.

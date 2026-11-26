@@ -26,7 +26,7 @@ export interface Bridge {
   /** Системное уведомление Windows. Нет в браузерном режиме. */
   notify?(п: { title: string; body?: string }): Promise<boolean>
   /** Настройки оболочки: трей и язык встроенного выбора даты. */
-  shellPrefs?(prefs: { tray?: boolean; dateFormat?: 'ru' | 'us'; language?: 'ru' | 'en' }): Promise<boolean>
+  shellPrefs?(prefs: { tray?: boolean; dateFormat?: 'ru' | 'us'; language?: 'ru' | 'en' | 'sr' | 'sr-Latn' }): Promise<boolean>
   /** Оболочка просит дописать правки перед выходом. Только на рабочем столе. */
   onSaveBeforeQuit?(cb: () => Promise<void>): () => void
 

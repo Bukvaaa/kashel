@@ -3,7 +3,7 @@ import { Icon } from '../../lib/icons'
 import { diffDays, shortDate } from '../../lib/date'
 import { BarChart, Donut, LineChart, Spark } from '../charts'
 import type { CanvasNode, VaultData, СвойВиджет } from '../../lib/types'
-import { текущійЯзык, т } from '../../i18n'
+import { текущійЯзык, т, локаль } from '../../i18n'
 import { нормСвойВиджет } from '../../engine/archive'
 import { посчитать, разбивкаВиджета, рядВиджета, цельПрогресса, type Доля, type ИтогВиджета } from '../../engine/vidzhety'
 import { деньги, кратко, месяц, type Размер } from './Vidzhety'
@@ -39,7 +39,7 @@ export const ВИДЫ_СВОЕГО: { id: СвойВиджет['view']; name: st
   { id: 'progress', name: т('Прогресс') },
 ]
 
-const числа = () => new Intl.NumberFormat(текущійЯзык() === 'en' ? 'en-US' : 'ru-RU', { maximumFractionDigits: 2 })
+const числа = () => new Intl.NumberFormat(текущійЯзык() === 'en' ? 'en-US' : локаль(), { maximumFractionDigits: 2 })
 
 /** Число своего виджета: деньги — с учётом «Скрыть баланс», проценты и просто числа — как есть. */
 export function значениеСвоего(data: VaultData, v: number | null, формат: ИтогВиджета['формат'], коротко = false): string {
