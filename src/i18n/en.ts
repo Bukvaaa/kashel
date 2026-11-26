@@ -572,6 +572,7 @@ export const EN: Record<string, string> = {
   'Во сколько': 'At what time',
   'Можно несколько раз в день. Пусто — один раз, как только наступит день.': 'You can set several times a day. Empty — once, as soon as the day starts.',
   'Время напоминания': 'Reminder time',
+  'Установщик Windows сам закрывает Кошель, даже если тот завис в фоне или запущен от администратора, и дожидается, пока Windows отпустит файлы. Раньше установка могла остановиться на «Не удалось закрыть Кошель».': 'The Windows installer now closes Koshel itself, even if it hung in the background or runs as administrator, and waits until Windows releases the files. Previously installation could stop at “Failed to close Koshel”.',
   'чч:мм': 'hh:mm',
   'Выбрать время из списка': 'Pick a time from the list',
   'Выбор времени': 'Time picker',
