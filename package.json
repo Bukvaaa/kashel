@@ -119,6 +119,7 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Кошель",
+      "include": "build/installer.nsh",
       "installerLanguages": [
         "ru_RU"
       ],
