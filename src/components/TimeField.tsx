@@ -62,8 +62,36 @@ export function TimeField({
     if (document.activeElement !== поле.current?.querySelector('input')) setТекстъ(value)
   }, [value])
 
+  // Двоеточие закреплено: в поле вписываются только цифры, а «:» всегда стоит
+  // после часов и не стирается. Курсор после правки ставим туда, где он был
+  // по счёту цифр, — иначе React уводил бы его в конец поля.
+  const ввод = useRef<HTMLInputElement>(null)
+  const курсоръ = useRef<number | null>(null)
+  useLayoutEffect(() => {
+    if (курсоръ.current === null || !ввод.current) return
+    ввод.current.setSelectionRange(курсоръ.current, курсоръ.current)
+    курсоръ.current = null
+  })
+
+  const вписать = (сырой: string, гдѣ: number) => {
+    let цифры = сырой.replace(/\D/g, '')
+    let доКурсора = сырой.slice(0, гдѣ).replace(/\D/g, '').length
+    // Вписали поверх полного времени — цифра заменяет следующую, а не сдвигает.
+    if (цифры.length > 4) цифры = цифры.slice(0, доКурсора) + цифры.slice(доКурсора + 1)
+    цифры = цифры.slice(0, 4)
+    // «9» — это 09: часов больше 23 не бывает, ноль дописываем сразу.
+    if (/^[3-9]/.test(цифры)) {
+      цифры = ('0' + цифры).slice(0, 4)
+      if (доКурсора > 0) доКурсора++
+    }
+    доКурсора = Math.min(доКурсора, цифры.length)
+    курсоръ.current = доКурсора >= 2 ? доКурсора + 1 : доКурсора
+    setТекстъ(цифры ? цифры.slice(0, 2) + ':' + цифры.slice(2) : '')
+  }
+
   const принять = () => {
-    const в = разобратьВремя(текстъ)
+    const [ч, м] = текстъ.split(':')
+    const в = ч ? разобратьВремя(ч + ':' + (м || '0')) : null
     if (в) {
       if (в !== value) onChange(в)
       setТекстъ(в)
@@ -89,21 +117,28 @@ export function TimeField({
       const вверхъ = r.bottom + высота > window.innerHeight && r.top > высота
       setМѣсто({ left: Math.max(8, Math.min(r.left, window.innerWidth - 140 - 8)), top: вверхъ ? r.top - 6 : r.bottom + 6, вверхъ })
     }
+    // Прокрутка самого списка — не повод двигать окно: иначе каждый щелчок
+    // колёсика пересчитывал место и возвращал список к выбранному времени.
+    const прокрутка = (e: Event) => {
+      if (окно.current && e.target instanceof Node && окно.current.contains(e.target)) return
+      посчитать()
+    }
     посчитать()
-    window.addEventListener('scroll', посчитать, true)
+    window.addEventListener('scroll', прокрутка, true)
     window.addEventListener('resize', посчитать)
     return () => {
-      window.removeEventListener('scroll', посчитать, true)
+      window.removeEventListener('scroll', прокрутка, true)
       window.removeEventListener('resize', посчитать)
     }
   }, [открытъ])
 
-  // Список открывается на выбранном времени.
+  // Список открывается на выбранном времени — один раз при открытии.
+  const естьМѣсто = мѣсто !== null
   useLayoutEffect(() => {
-    if (!открытъ || !мѣсто) return
+    if (!открытъ || !естьМѣсто) return
     const сел = окно.current?.querySelector('.sel, .near') as HTMLElement | null
     if (сел && окно.current) окно.current.scrollTop = сел.offsetTop - 90
-  }, [открытъ, мѣсто])
+  }, [открытъ, естьМѣсто])
 
   useEffect(() => {
     if (!открытъ) return
@@ -131,18 +166,29 @@ export function TimeField({
   return (
     <div ref={поле} className="datefield timefield" style={style} title={title}>
       <input
+        ref={ввод}
         type="text"
         inputMode="numeric"
         value={текстъ}
         placeholder={т('чч:мм')}
         aria-label={ariaLabel}
-        onChange={(e) => setТекстъ(e.target.value)}
+        onChange={(e) => вписать(e.target.value, e.target.selectionStart ?? e.target.value.length)}
         onBlur={() => {
           принять()
           onBlur?.()
         }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
+          const поз = e.currentTarget.selectionStart ?? 0
+          const безВыделенія = поз === e.currentTarget.selectionEnd
+          // Backspace сразу за «:» и Delete перед ним не стирают двоеточие, а
+          // перешагивают его — дальше стирается цифра по ту сторону.
+          if (e.key === 'Backspace' && безВыделенія && текстъ[поз - 1] === ':') {
+            e.preventDefault()
+            e.currentTarget.setSelectionRange(поз - 1, поз - 1)
+          } else if (e.key === 'Delete' && безВыделенія && текстъ[поз] === ':') {
+            e.preventDefault()
+            e.currentTarget.setSelectionRange(поз + 1, поз + 1)
+          } else if (e.key === 'Enter') {
             e.preventDefault()
             принять()
           } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {

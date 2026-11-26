@@ -107,11 +107,16 @@ export function Vybor({
       const width = Math.max(r.width, 160)
       setМѣсто({ left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)), top: вверхъ ? r.top - 4 : r.bottom + 4, width, вверхъ, высота })
     }
+    // Прокрутка самого списка не двигает окно (см. TimeField).
+    const прокрутка = (e: Event) => {
+      if (окно.current && e.target instanceof Node && окно.current.contains(e.target)) return
+      посчитать()
+    }
     посчитать()
-    window.addEventListener('scroll', посчитать, true)
+    window.addEventListener('scroll', прокрутка, true)
     window.addEventListener('resize', посчитать)
     return () => {
-      window.removeEventListener('scroll', посчитать, true)
+      window.removeEventListener('scroll', прокрутка, true)
       window.removeEventListener('resize', посчитать)
     }
   }, [открытъ, список.length])
@@ -121,7 +126,7 @@ export function Vybor({
     if (!открытъ) return
     const эл = окно.current?.querySelector(`[data-i="${активный}"]`) as HTMLElement | null
     эл?.scrollIntoView({ block: 'nearest' })
-  }, [открытъ, активный, мѣсто])
+  }, [открытъ, активный, мѣсто !== null])
 
   useEffect(() => {
     if (!открытъ) return
